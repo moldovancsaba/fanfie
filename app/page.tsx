@@ -168,16 +168,15 @@ export default function Home() {
   return (
     <>
       <main className="p-4 flex flex-col items-center landscape:flex-row landscape:items-start landscape:justify-center">
-        <h1 className="text-2xl font-bold mb-4">Camera Control</h1>
-        
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4">
             {error}
           </div>
         )}
 
-        <div className="w-full max-w-md landscape:max-w-[50%] landscape:mr-4" ref={containerRef}>
-          <div className="bg-gray-100 rounded-lg overflow-hidden mb-4" style={{ aspectRatio: '1' }}>
+        {/* Camera Section */}
+        <div className="w-full max-w-md landscape:max-w-[50%] landscape:mr-4 mb-4 landscape:mb-0" ref={containerRef}>
+          <div className="bg-gray-100 rounded-lg overflow-hidden" style={{ aspectRatio: '1' }}>
             <video
               ref={videoRef}
               className="w-full h-full object-cover"
@@ -185,27 +184,28 @@ export default function Home() {
               muted
             />
           </div>
+        </div>
 
-          <div className="space-y-2 landscape:space-y-4">
-            <button
-              onClick={isStreaming ? stopCamera : startCamera}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors"
-            >
-              {isStreaming ? 'Stop Camera' : 'Start Camera'}
-            </button>
+        {/* Buttons Section */}
+        <div className="w-full max-w-md landscape:max-w-[50%] space-y-2 landscape:space-y-4">
+          <button
+            onClick={isStreaming ? stopCamera : startCamera}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors"
+          >
+            {isStreaming ? 'Stop Camera' : 'Start Camera'}
+          </button>
 
-            <button
-              onClick={takePhoto}
-              disabled={!isStreaming}
-              className={`w-full py-2 px-4 rounded transition-colors ${
-                isStreaming
-                  ? 'bg-green-500 hover:bg-green-600 text-white'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              Take Picture
-            </button>
-          </div>
+          <button
+            onClick={takePhoto}
+            disabled={!isStreaming}
+            className={`w-full py-2 px-4 rounded transition-colors ${
+              isStreaming
+                ? 'bg-green-500 hover:bg-green-600 text-white'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            Take Picture
+          </button>
         </div>
       </main>
 
