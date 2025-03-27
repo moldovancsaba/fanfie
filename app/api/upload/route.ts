@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     const imgbbFormData = new FormData();
     imgbbFormData.append('image', image);
 
-    const imgbbUrl = `https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`;
+    const imgbbUrl = `https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}&album=PDyGWC`;
     console.log('Attempting to upload to ImgBB...');
 
     const response = await fetch(imgbbUrl, {
