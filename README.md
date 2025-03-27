@@ -7,6 +7,7 @@ A web application for taking and managing photos.
 ### Prerequisites
 - Node.js 18+ and npm
 - Git
+- Modern web browser with camera support
 
 ### Local Development Setup
 1. Clone the repository:
@@ -50,12 +51,26 @@ No environment variables are required for the current version.
 ### Current Features
 - Basic web application structure
 - Responsive design
-- Landing page
+- Camera access and control (Start/Stop functionality)
+
+### Camera Usage Instructions
+1. When you first open the application, you'll see a 'Start Camera' button
+2. Click 'Start Camera' to begin - your browser will ask for camera permissions
+3. Grant camera permissions when prompted
+4. The camera feed will appear in the video container
+5. Click 'Stop Camera' to end the camera feed
+
+### Browser Compatibility
+- Works best on modern browsers (Chrome, Firefox, Safari, Edge)
+- Requires HTTPS for camera access
+- On mobile devices, defaults to the back camera
+- Requires camera permissions to be granted
 
 ### Coming Soon
-- Camera access and control
-- Photo capture
+- Photo capture functionality
 - Photo management
+- Image filters and effects
 
 ## Version History
+- v0.2.0 - Added camera start/stop functionality
 - v0.1.0 - Initial setup with basic page structure
