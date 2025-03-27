@@ -1,6 +1,29 @@
 # Release Notes
 
-## v0.3.0-dev - Square Format Update (2025-03-27)
+## v0.3.1-dev - Download UX Enhancement (2025-03-27)
+
+### New Features
+- Improved download experience
+    - Automatic window closing after download
+    - Special handling for Safari on iOS
+    - User feedback during download process
+- Enhanced cross-browser compatibility
+    - iOS Safari support
+    - Desktop browser support
+    - Mobile browser support
+
+### Technical Updates
+- Implemented automatic window closing mechanism
+- Added iOS Safari-specific handling
+- Enhanced download feedback system
+- Improved user experience across devices
+
+### Known Limitations
+- Photos are not stored persistently
+- No image editing capabilities
+- Single photo capture at a time
+
+## v0.3.0 - Square Format Release (2025-03-27)
 
 ### New Features
 - Enforced 1:1 square aspect ratio for photos
@@ -14,17 +37,6 @@
     - Square photo display
     - Improved download experience
     - Renamed photos to 'fanfie-square.jpg'
-
-### Technical Updates
-- Added aspect ratio constraints to MediaStream
-- Implemented dynamic square cropping
-- Enhanced responsive design for square format
-- Improved video container sizing logic
-
-### Known Limitations
-- Photos are not stored persistently
-- No image editing capabilities
-- Single photo capture at a time
 
 ## v0.2.0 - Photo Capture Release (2025-03-27)
 
