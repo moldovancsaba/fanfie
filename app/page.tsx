@@ -60,7 +60,6 @@ export default function Home() {
   const takePhoto = () => {
     if (!videoRef.current || !isStreaming) return;
 
-    // Create a square canvas
     const canvas = document.createElement('canvas');
     const size = Math.min(videoRef.current.videoWidth, videoRef.current.videoHeight);
     canvas.width = size;
@@ -69,15 +68,13 @@ export default function Home() {
     const context = canvas.getContext('2d');
     if (!context) return;
 
-    // Calculate the cropping position
     const sx = (videoRef.current.videoWidth - size) / 2;
     const sy = (videoRef.current.videoHeight - size) / 2;
     
-    // Draw the square crop
     context.drawImage(
       videoRef.current,
-      sx, sy, size, size,  // Source (crop)
-      0, 0, size, size     // Destination (square)
+      sx, sy, size, size,
+      0, 0, size, size
     );
 
     const photoUrl = canvas.toDataURL('image/jpeg');
@@ -113,9 +110,15 @@ export default function Home() {
                 border-radius: 8px;
                 box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
               }
+              .button-container {
+                margin-top: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+              }
               .download-btn { 
                 display: inline-block;
-                margin-top: 20px; 
                 padding: 12px 24px; 
                 background: #0070f3; 
                 color: white; 
@@ -129,15 +132,44 @@ export default function Home() {
               .download-btn:hover { 
                 background: #0051a8; 
               }
+              .note {
+                color: #666;
+                font-size: 14px;
+                margin-top: 8px;
+              }
             </style>
+            <script>
+              // Function to handle download and close
+              function downloadAndClose() {
+                // Create a hidden link and click it
+                const link = document.createElement('a');
+                link.href = '${photoUrl}';
+                link.download = 'fanfie-square.jpg';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // Set a timeout to close the window
+                setTimeout(() => {
+                  // For Safari mobile, we show a message first
+                  if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+                    document.getElementById('downloadMessage').textContent = 'Download started! You can close this window.';
+                  } else {
+                    window.close();
+                  }
+                }, 1000);
+              }
+            </script>
           </head>
           <body>
             <div class="container">
               <img src="${photoUrl}" alt="Captured photo" />
-              <br/>
-              <a href="${photoUrl}" download="fanfie-square.jpg" class="download-btn">
-                Download Photo
-              </a>
+              <div class="button-container">
+                <button onclick="downloadAndClose()" class="download-btn">
+                  Download Photo
+                </button>
+                <div id="downloadMessage" class="note"></div>
+              </div>
             </div>
           </body>
         </html>
