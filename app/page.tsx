@@ -1,18 +1,36 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 export default function Home() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const adjustVideoSize = () => {
+      if (videoRef.current && containerRef.current) {
+        const containerWidth = containerRef.current.offsetWidth;
+        const size = Math.min(containerWidth, window.innerHeight * 0.7);
+        videoRef.current.style.width = `${size}px`;
+        videoRef.current.style.height = `${size}px`;
+      }
+    };
+
+    window.addEventListener('resize', adjustVideoSize);
+    return () => window.removeEventListener('resize', adjustVideoSize);
+  }, []);
 
   const startCamera = async () => {
     try {
       setError(null);
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
+        video: {
+          facingMode: 'environment',
+          aspectRatio: 1,
+        }
       });
       
       streamRef.current = stream;
@@ -42,14 +60,26 @@ export default function Home() {
   const takePhoto = () => {
     if (!videoRef.current || !isStreaming) return;
 
+    // Create a square canvas
     const canvas = document.createElement('canvas');
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
+    const size = Math.min(videoRef.current.videoWidth, videoRef.current.videoHeight);
+    canvas.width = size;
+    canvas.height = size;
+    
     const context = canvas.getContext('2d');
-    
     if (!context) return;
+
+    // Calculate the cropping position
+    const sx = (videoRef.current.videoWidth - size) / 2;
+    const sy = (videoRef.current.videoHeight - size) / 2;
     
-    context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+    // Draw the square crop
+    context.drawImage(
+      videoRef.current,
+      sx, sy, size, size,  // Source (crop)
+      0, 0, size, size     // Destination (square)
+    );
+
     const photoUrl = canvas.toDataURL('image/jpeg');
     
     const newWindow = window.open('');
@@ -68,7 +98,7 @@ export default function Home() {
                 align-items: center; 
                 min-height: 100vh; 
                 background: #f0f0f0; 
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
               }
               .container { 
                 text-align: center;
@@ -76,8 +106,9 @@ export default function Home() {
                 max-width: 100%;
               }
               img { 
-                max-width: 100%; 
-                max-height: 80vh; 
+                width: 100%;
+                max-width: 80vh;
+                aspect-ratio: 1;
                 object-fit: contain;
                 border-radius: 8px;
                 box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -104,7 +135,7 @@ export default function Home() {
             <div class="container">
               <img src="${photoUrl}" alt="Captured photo" />
               <br/>
-              <a href="${photoUrl}" download="fanfie-photo.jpg" class="download-btn">
+              <a href="${photoUrl}" download="fanfie-square.jpg" class="download-btn">
                 Download Photo
               </a>
             </div>
@@ -127,8 +158,8 @@ export default function Home() {
         </div>
       )}
 
-      <div className="w-full max-w-md">
-        <div className="bg-gray-100 aspect-video rounded-lg overflow-hidden mb-4">
+      <div className="w-full max-w-md" ref={containerRef}>
+        <div className="bg-gray-100 rounded-lg overflow-hidden mb-4" style={{ aspectRatio: '1' }}>
           <video
             ref={videoRef}
             className="w-full h-full object-cover"
