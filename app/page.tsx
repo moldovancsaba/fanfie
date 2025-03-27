@@ -5,6 +5,8 @@ import { useState, useRef, useEffect } from 'react';
 export default function Home() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [capturedPhotoUrl, setCapturedPhotoUrl] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -21,6 +23,16 @@ export default function Home() {
 
     window.addEventListener('resize', adjustVideoSize);
     return () => window.removeEventListener('resize', adjustVideoSize);
+  }, []);
+
+  // Close modal when Escape key is pressed
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowModal(false);
+    };
+    
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
   }, []);
 
   const startCamera = async () => {
@@ -57,10 +69,23 @@ export default function Home() {
     }
   };
 
+  const handleDownload = () => {
+    if (!capturedPhotoUrl) return;
+    
+    const link = document.createElement('a');
+    link.href = capturedPhotoUrl;
+    link.download = 'fanfie-square.jpg';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Close modal after download
+    setShowModal(false);
+  };
+
   const takePhoto = () => {
     if (!videoRef.current || !isStreaming) return;
 
-    // Create a square canvas
     const canvas = document.createElement('canvas');
     const size = Math.min(videoRef.current.videoWidth, videoRef.current.videoHeight);
     canvas.width = size;
@@ -69,126 +94,124 @@ export default function Home() {
     const context = canvas.getContext('2d');
     if (!context) return;
 
-    // Calculate the cropping position
     const sx = (videoRef.current.videoWidth - size) / 2;
     const sy = (videoRef.current.videoHeight - size) / 2;
     
-    // Draw the square crop
     context.drawImage(
       videoRef.current,
-      sx, sy, size, size,  // Source (crop)
-      0, 0, size, size     // Destination (square)
+      sx, sy, size, size,
+      0, 0, size, size
     );
 
     const photoUrl = canvas.toDataURL('image/jpeg');
-    
-    const newWindow = window.open('');
-    if (newWindow) {
-      newWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Captured Photo</title>
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <style>
-              body { 
-                margin: 0; 
-                display: flex; 
-                justify-content: center; 
-                align-items: center; 
-                min-height: 100vh; 
-                background: #f0f0f0; 
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-              }
-              .container { 
-                text-align: center;
-                padding: 20px;
-                max-width: 100%;
-              }
-              img { 
-                width: 100%;
-                max-width: 80vh;
-                aspect-ratio: 1;
-                object-fit: contain;
-                border-radius: 8px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-              }
-              .download-btn { 
-                display: inline-block;
-                margin-top: 20px; 
-                padding: 12px 24px; 
-                background: #0070f3; 
-                color: white; 
-                border: none; 
-                border-radius: 5px; 
-                cursor: pointer; 
-                font-size: 16px;
-                text-decoration: none;
-                transition: background 0.2s ease;
-              }
-              .download-btn:hover { 
-                background: #0051a8; 
-              }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <img src="${photoUrl}" alt="Captured photo" />
-              <br/>
-              <a href="${photoUrl}" download="fanfie-square.jpg" class="download-btn">
-                Download Photo
-              </a>
-            </div>
-          </body>
-        </html>
-      `);
-      newWindow.document.close();
-    }
-    
+    setCapturedPhotoUrl(photoUrl);
+    setShowModal(true);
     stopCamera();
   };
 
   return (
-    <main className="p-4 flex flex-col items-center">
-      <h1 className="text-2xl font-bold mb-4">Camera Control</h1>
-      
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4">
-          {error}
+    <>
+      <main className="p-4 flex flex-col items-center">
+        <h1 className="text-2xl font-bold mb-4">Camera Control</h1>
+        
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4">
+            {error}
+          </div>
+        )}
+
+        <div className="w-full max-w-md" ref={containerRef}>
+          <div className="bg-gray-100 rounded-lg overflow-hidden mb-4" style={{ aspectRatio: '1' }}>
+            <video
+              ref={videoRef}
+              className="w-full h-full object-cover"
+              playsInline
+              muted
+            />
+          </div>
+
+          <div className="space-y-2">
+            <button
+              onClick={isStreaming ? stopCamera : startCamera}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors"
+            >
+              {isStreaming ? 'Stop Camera' : 'Start Camera'}
+            </button>
+
+            <button
+              onClick={takePhoto}
+              disabled={!isStreaming}
+              className={`w-full py-2 px-4 rounded transition-colors ${
+                isStreaming
+                  ? 'bg-green-500 hover:bg-green-600 text-white'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              Take Picture
+            </button>
+          </div>
+        </div>
+      </main>
+
+      {/* Modal */}
+      {showModal && capturedPhotoUrl && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 animate-fade-in">
+          <div 
+            className="bg-white rounded-lg p-4 max-w-lg w-full mx-4 relative animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 p-2"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            <div className="aspect-square overflow-hidden rounded-lg mb-4">
+              <img
+                src={capturedPhotoUrl}
+                alt="Captured photo"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            
+            <button
+              onClick={handleDownload}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded transition-colors"
+            >
+              Download Photo
+            </button>
+          </div>
         </div>
       )}
 
-      <div className="w-full max-w-md" ref={containerRef}>
-        <div className="bg-gray-100 rounded-lg overflow-hidden mb-4" style={{ aspectRatio: '1' }}>
-          <video
-            ref={videoRef}
-            className="w-full h-full object-cover"
-            playsInline
-            muted
-          />
-        </div>
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
 
-        <div className="space-y-2">
-          <button
-            onClick={isStreaming ? stopCamera : startCamera}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors"
-          >
-            {isStreaming ? 'Stop Camera' : 'Start Camera'}
-          </button>
+        @keyframes scaleIn {
+          from { 
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to { 
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
 
-          <button
-            onClick={takePhoto}
-            disabled={!isStreaming}
-            className={`w-full py-2 px-4 rounded transition-colors ${
-              isStreaming
-                ? 'bg-green-500 hover:bg-green-600 text-white'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            Take Picture
-          </button>
-        </div>
-      </div>
-    </main>
+        .animate-fade-in {
+          animation: fadeIn 0.2s ease-out;
+        }
+
+        .animate-scale-in {
+          animation: scaleIn 0.2s ease-out;
+        }
+      `}</style>
+    </>
   );
 }
