@@ -1,6 +1,6 @@
-module.exports = {
-  output: "standalone",
-  images: {
-    domains: ["i.ibb.co"],
-  }
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
 }
+
+module.exports = nextConfig
