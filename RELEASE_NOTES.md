@@ -1,6 +1,34 @@
 # Release Notes
 
-## v0.3.0-dev - Square Format Update (2025-03-27)
+## v0.3.1-dev - Modal Preview Enhancement (2025-03-27)
+
+### New Features
+- Replaced new window with modal preview
+    - Smooth animations for opening/closing
+    - Elegant backdrop with opacity
+    - Close button and Escape key support
+- Improved photo preview experience
+    - In-page photo preview
+    - Seamless download flow
+    - Better mobile experience
+- Enhanced UI/UX
+    - Consistent styling
+    - Responsive design
+    - Improved accessibility
+
+### Technical Updates
+- Implemented modal component
+- Added CSS animations
+- Enhanced photo preview handling
+- Improved download mechanism
+- Better state management
+
+### Known Limitations
+- Photos are not stored persistently
+- No image editing capabilities
+- Single photo capture at a time
+
+## v0.3.0 - Square Format Release (2025-03-27)
 
 ### New Features
 - Enforced 1:1 square aspect ratio for photos
@@ -14,17 +42,6 @@
     - Square photo display
     - Improved download experience
     - Renamed photos to 'fanfie-square.jpg'
-
-### Technical Updates
-- Added aspect ratio constraints to MediaStream
-- Implemented dynamic square cropping
-- Enhanced responsive design for square format
-- Improved video container sizing logic
-
-### Known Limitations
-- Photos are not stored persistently
-- No image editing capabilities
-- Single photo capture at a time
 
 ## v0.2.0 - Photo Capture Release (2025-03-27)
 
