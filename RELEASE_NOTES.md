@@ -1,5 +1,30 @@
 # Release Notes
 
+## v0.3.3-dev - Responsive UI Enhancement (2025-03-27)
+
+### New Features
+- Implemented fully responsive UI for different device orientations
+    - Portrait mode: Camera at top with controls below
+    - Landscape mode: Camera on left with controls on right
+    - Optimized space utilization in both orientations
+    - Automatic layout adjustment when device is rotated
+- Enhanced user experience across devices
+    - Better ergonomics for phone and tablet use
+    - Improved accessibility on different screen sizes
+    - More intuitive control placement based on orientation
+
+### Technical Updates
+- Utilized Tailwind CSS landscape variants
+- Implemented media queries for orientation detection
+- Added responsive flex containers for layout switching
+- Enhanced component positioning with dynamic margins
+- Optimized camera viewport sizing for different orientations
+
+### Known Limitations
+- Photos are not stored persistently
+- No image editing capabilities
+- Single photo capture at a time
+
 ## v0.3.2-dev - Download & Share Feature (2025-03-27)
 
 ### New Features

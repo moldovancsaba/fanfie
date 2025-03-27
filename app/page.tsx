@@ -167,7 +167,7 @@ export default function Home() {
 
   return (
     <>
-      <main className="p-4 flex flex-col items-center">
+      <main className="p-4 flex flex-col items-center landscape:flex-row landscape:items-start landscape:justify-center">
         <h1 className="text-2xl font-bold mb-4">Camera Control</h1>
         
         {error && (
@@ -176,7 +176,7 @@ export default function Home() {
           </div>
         )}
 
-        <div className="w-full max-w-md" ref={containerRef}>
+        <div className="w-full max-w-md landscape:max-w-[50%] landscape:mr-4" ref={containerRef}>
           <div className="bg-gray-100 rounded-lg overflow-hidden mb-4" style={{ aspectRatio: '1' }}>
             <video
               ref={videoRef}
@@ -186,7 +186,7 @@ export default function Home() {
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 landscape:space-y-4">
             <button
               onClick={isStreaming ? stopCamera : startCamera}
               className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors"
@@ -291,6 +291,33 @@ export default function Home() {
 
         .animate-scale-in {
           animation: scaleIn 0.2s ease-out;
+        }
+        
+        /* Responsive layout styles */
+        @media (orientation: landscape) {
+          .landscape\:flex-row {
+            flex-direction: row;
+          }
+          
+          .landscape\:items-start {
+            align-items: flex-start;
+          }
+          
+          .landscape\:justify-center {
+            justify-content: center;
+          }
+          
+          .landscape\:max-w-\[50\%\] {
+            max-width: 50%;
+          }
+          
+          .landscape\:mr-4 {
+            margin-right: 1rem;
+          }
+          
+          .landscape\:space-y-4 > * + * {
+            margin-top: 1rem;
+          }
         }
       `}</style>
     </>
