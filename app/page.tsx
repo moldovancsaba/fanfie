@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 
 export default function Home() {
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -81,6 +83,60 @@ export default function Home() {
     
     // Close modal after download
     setShowModal(false);
+  };
+
+  const handleDownloadAndShare = async () => {
+    if (!capturedPhotoUrl) return;
+    
+    // Download locally
+    const link = document.createElement('a');
+    link.href = capturedPhotoUrl;
+    link.download = 'fanfie-square.jpg';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Upload to ImgBB
+    try {
+      setIsUploading(true);
+      setUploadStatus('Uploading to ImgBB...');
+      
+      // Convert base64 data URL to Blob
+      const fetchResponse = await fetch(capturedPhotoUrl);
+      const blob = await fetchResponse.blob();
+      
+      // Create FormData and append the blob
+      const formData = new FormData();
+      formData.append('image', blob, 'fanfie-square.jpg');
+      
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setUploadStatus('Uploaded successfully!');
+        setTimeout(() => {
+          setShowModal(false);
+          setUploadStatus(null);
+        }, 1500);
+      } else {
+        setUploadStatus(`Upload failed: ${data.error || 'Unknown error'}`);
+        setTimeout(() => {
+          setUploadStatus(null);
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      setUploadStatus('Upload failed. Please try again.');
+      setTimeout(() => {
+        setUploadStatus(null);
+      }, 3000);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const takePhoto = () => {
@@ -164,9 +220,7 @@ export default function Home() {
               onClick={() => setShowModal(false)}
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 p-2"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              Cancel
             </button>
             
             <div className="aspect-square overflow-hidden rounded-lg mb-4">
@@ -177,12 +231,39 @@ export default function Home() {
               />
             </div>
             
-            <button
-              onClick={handleDownload}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded transition-colors"
-            >
-              Download Photo
-            </button>
+            {uploadStatus && (
+              <div className={`mb-3 py-2 px-3 rounded text-center ${
+                uploadStatus.includes('failed') 
+                  ? 'bg-red-100 text-red-700' 
+                  : uploadStatus.includes('success') 
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-blue-100 text-blue-700'
+              }`}>
+                {uploadStatus}
+              </div>
+            )}
+            
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={handleDownload}
+                className="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded transition-colors"
+              >
+                Download Photo
+              </button>
+              
+              <button
+                onClick={handleDownloadAndShare}
+                disabled={isUploading}
+                className={`
+                  text-white py-3 px-4 rounded transition-colors
+                  ${isUploading 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-green-500 hover:bg-green-600'}
+                `}
+              >
+                {isUploading ? 'Uploading...' : 'Download & Share'}
+              </button>
+            </div>
           </div>
         </div>
       )}

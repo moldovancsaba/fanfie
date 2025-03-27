@@ -1,5 +1,30 @@
 # Release Notes
 
+## v0.3.2-dev - Download & Share Feature (2025-03-27)
+
+### New Features
+- Added "Download & Share" functionality
+    - New button in photo preview modal
+    - Downloads photo locally and uploads to ImgBB
+    - Visual feedback during upload process
+    - Image sharing capabilities
+- Improved UI/UX
+    - Replaced (X) with "Cancel" button in modal
+    - Two-column button layout in preview modal
+    - Better user guidance for sharing options
+    - Enhanced user interaction flow
+
+### Technical Updates
+- Implemented ImgBB integration
+- Added asynchronous upload handling
+- Improved modal interface
+- Enhanced state management for upload status
+- Proper error handling for network issues
+
+### Known Limitations
+- Photos are not stored persistently
+- No image editing capabilities
+- Single photo capture at a time
 ## v0.3.1-dev - Modal Preview Enhancement (2025-03-27)
 
 ### New Features
