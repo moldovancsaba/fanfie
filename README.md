@@ -1,40 +1,61 @@
-<<<<<<< HEAD
-fanfie
-=======
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fanfie
 
-## Getting Started
+A web application for taking and managing photos.
 
-First, run the development server:
+## Development
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Prerequisites
+- Node.js 18+ and npm
+- Git
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Local Development Setup
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/moldovancsaba/fanfie.git
+   cd fanfie
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-## Learn More
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-To learn more about Next.js, take a look at the following resources:
+### Development Guidelines
+- Follow TypeScript best practices
+- Use Tailwind CSS for styling
+- Ensure responsive design
+- Test on multiple browsers
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deployment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The application is deployed on Vercel.
 
-## Deploy on Vercel
+### Deployment Process
+1. Push changes to the `photo-upload` branch
+2. Vercel automatically deploys from this branch
+3. Visit [https://fanfie.vercel.app](https://fanfie.vercel.app) to see the live version
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Environment Variables
+No environment variables are required for the current version.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
->>>>>>> 1188c55 (Initial commit from Create Next App)
+## User Manual
+
+### Current Features
+- Basic web application structure
+- Responsive design
+- Landing page
+
+### Coming Soon
+- Camera access and control
+- Photo capture
+- Photo management
+
+## Version History
+- v0.1.0 - Initial setup with basic page structure
