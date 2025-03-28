@@ -228,7 +228,7 @@ export default function Home() {
           stopCamera();
           reject(error);
         };
-        frameImage.src = '/images/frame.png';
+        frameImage.src = 'https://i.ibb.co/mV2jdW46/SEYU-FRAME.png';
       });
     };
 
@@ -263,7 +263,7 @@ export default function Home() {
               }}
             />
             <img 
-              src="/images/frame.png" 
+              src="https://i.ibb.co/mV2jdW46/SEYU-FRAME.png" 
               alt="Camera Frame" 
               className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10"
               style={{
