@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 
 export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
@@ -210,7 +211,7 @@ export default function Home() {
 
   return (
     <>
-      <main className="p-4 flex flex-col items-center landscape:flex-row landscape:items-start landscape:justify-center">
+      <main className="p-4 flex flex-col items-center landscape:flex-row landscape:items-start landscape:justify-center min-h-[calc(100vh-40px)]">
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4">
             {error}
@@ -257,6 +258,15 @@ export default function Home() {
           </button>
         </div>
       </main>
+      
+      {/* Footer with Policy Links */}
+      <footer className="bg-gray-100 py-2 px-4 text-center text-sm text-gray-600 w-full">
+        <div className="flex justify-center space-x-4">
+          <Link href="/terms" className="hover:text-blue-500 hover:underline">Terms and Conditions</Link>
+          <Link href="/privacy" className="hover:text-blue-500 hover:underline">Privacy Policy</Link>
+          <Link href="/cookies" className="hover:text-blue-500 hover:underline">Cookie Policy</Link>
+        </div>
+      </footer>
 
       {/* Modal */}
       {showModal && capturedPhotoUrl && (
@@ -311,6 +321,15 @@ export default function Home() {
                 `}
               >
                 {isUploading ? 'Uploading...' : 'Download & Share'}
+              </button>
+            </div>
+
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => setShowModal(false)}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-6 rounded transition-colors"
+              >
+                Close
               </button>
             </div>
           </div>
