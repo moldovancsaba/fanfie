@@ -15,8 +15,13 @@ The application aims to provide a simple, intuitive interface for quick photo ca
 
 ## Current Status & Recent Progress
 
-As of the latest update (v0.3.3-dev), the application has undergone several improvements:
+As of the latest update (v1.0.0), the application has achieved several major milestones:
 
+- Successfully implemented ImageCapture API with fallback mechanisms
+- Fixed TypeScript definition issues for MediaTrackConstraints
+- Resolved deployment issues on Vercel
+- Created a stable v1.0.0 release with working photo capture
+- Implemented comprehensive error handling and browser compatibility checks
 - Implemented fully responsive UI for different device orientations (portrait and landscape)
 - Enhanced camera view that adapts to orientation changes
 - Removed "Camera Control" title for a cleaner interface
@@ -42,6 +47,20 @@ The application is built using Next.js framework with the following technical co
 - Implements custom sizing logic in the `adjustVideoSize` function
 - Handles orientation changes with dedicated event listeners
 - Uses canvas for photo capture with proper orientation handling
+- Implements modern ImageCapture API for high-quality photo capture
+- Features a multi-tiered fallback system:
+  - Primary: ImageCapture API (grabFrame method)
+  - Secondary: Canvas-based capture from video element
+  - Tertiary: OffscreenCanvas fallback for older browsers
+- Includes feature detection to determine the best available capture method
+- Automatically adapts to device capabilities with progressive enhancement
+
+### Photo Capture Implementation
+- Primary: Uses modern ImageCapture API for optimal quality
+- Secondary: Canvas-based capture fallback for broader compatibility
+- Tertiary: OffscreenCanvas fallback for older browsers
+- Feature detection system for automatic method selection
+- Proper TypeScript definitions for all capture methods
 
 ### ImgBB Integration
 - API key stored in environment variables (IMGBB_API_KEY)
@@ -113,7 +132,6 @@ The application is built using Next.js framework with the following technical co
 - Add localization support for multiple languages
 
 ## Known Issues
-
 ### Camera Access
 - Some browsers may require HTTPS for camera access
 - Permission handling could be improved with better user feedback
@@ -122,6 +140,18 @@ The application is built using Next.js framework with the following technical co
 ### Photo Capture
 - Very large resolution cameras may cause performance issues during capture
 - Some devices may have orientation detection issues in certain browsers
+- ImageCapture API is not supported in all browsers (Safari has limited support)
+- iOS Safari may require additional user interaction for camera access
+- Some Android browsers may have inconsistent behavior with ImageCapture
+- Frame overlay may not align perfectly on certain unusual aspect ratios
+- Memory usage can be high when processing large resolution images
+
+### ImageCapture API
+- Limited browser support (primarily Chrome and Edge)
+- Some mobile browsers may not support the API
+- Fallback mechanisms may produce different quality results
+- Performance impact when switching between capture methods
+- Memory usage can be high when processing large resolution images
 
 ### ImgBB Integration
 - Upload to specific album (PDyGWC) may not be working as expected
@@ -131,4 +161,32 @@ The application is built using Next.js framework with the following technical co
 ### Responsive Design
 - UI may not be optimized for extremely small or large viewports
 - Some elements may overlap or misalign on unusual aspect ratios
+134|
 
+## Deployment Challenges and Solutions
+
+### TypeScript Build Issues
+- **Challenge**: TypeScript build errors occurred during deployment due to invalid MediaTrackConstraints
+- **Solution**: Simplified camera constraints configuration to only include standard properties (width, height, facingMode)
+
+### Browser API Compatibility
+- **Challenge**: ImageCapture API has inconsistent browser support
+- **Solution**: Implemented multiple fallback mechanisms with feature detection to ensure functionality across browsers
+
+### Deployment Pipeline
+- **Challenge**: Vercel deployments failing without clear error messages
+- **Solution**: Added local build validation before deployment to catch errors early
+
+### Version Management
+- **Challenge**: Difficulty tracking stable versions with working implementations
+- **Solution**: Implemented git tags (v1.0.0) to mark stable points for easy rollback if needed
+
+### Performance Optimization
+- **Challenge**: Large camera resolutions causing performance issues
+- **Solution**: Implemented constraints to request optimal resolution for web display
+
+### Error Recovery
+- **Challenge**: Silent failures in image capture process
+- **Solution**: Enhanced error handling with cascading fallback methods to ensure users can always take photos
+
+These deployment challenges have led to a much more robust and reliable application architecture, with proper error handling, feature detection, and fallback mechanisms throughout the codebase.
