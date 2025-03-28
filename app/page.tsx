@@ -205,90 +205,148 @@ export default function Home() {
 
     if (videoRef.current.videoWidth === 0 || videoRef.current.videoHeight === 0) {
       console.log('Video dimensions are not valid yet, waiting...');
-      // Wait a brief moment and try again
       setTimeout(takePhoto, 500);
       return;
     }
 
-    if (videoRef.current.readyState < 2) { // HAVE_CURRENT_DATA = 2
+    if (videoRef.current.readyState < 2) {
       console.log('Video is not ready yet, waiting...');
-      // Wait a brief moment and try again
       setTimeout(takePhoto, 500);
       return;
     }
 
-    const canvas = document.createElement('canvas');
-    const size = Math.min(videoRef.current.videoWidth, videoRef.current.videoHeight);
-    console.log('Canvas created with size:', size);
-    canvas.width = size;
-    canvas.height = size;
-    
-    const context = canvas.getContext('2d');
-    if (!context) {
-      console.log('Failed to get canvas context');
-      return;
-    }
-
-    const sx = (videoRef.current.videoWidth - size) / 2;
-    const sy = (videoRef.current.videoHeight - size) / 2;
-    console.log('Drawing parameters:', { sx, sy, size });
-    
-    // Draw the video frame to the canvas
     try {
-      console.log('Attempting to draw video frame to canvas');
-      context.drawImage(
-        videoRef.current,
-        sx, sy, size, size,
-        0, 0, size, size
-      );
-      console.log('Successfully drew video frame to canvas');
+      const canvas = document.createElement('canvas');
+      const size = Math.min(videoRef.current.videoWidth, videoRef.current.videoHeight);
+      console.log('Canvas created with size:', size);
+      canvas.width = size;
+      canvas.height = size;
+      
+      const context = canvas.getContext('2d');
+      if (!context) {
+        console.log('Failed to get canvas context');
+        return;
+      }
+
+      const sx = (videoRef.current.videoWidth - size) / 2;
+      const sy = (videoRef.current.videoHeight - size) / 2;
+      console.log('Drawing parameters:', { sx, sy, size });
+      
+      // Draw the video frame to the canvas
+      try {
+        console.log('Attempting to draw video frame to canvas');
+        context.drawImage(
+          videoRef.current,
+          sx, sy, size, size,
+          0, 0, size, size
+        );
+        console.log('Successfully drew video frame to canvas');
+        
+        // Load the frame image and draw it on top of the photo
+        loadFrameAndFinish().catch(error => {
+          console.error('Failed to load frame:', error);
+          // If frame loading fails, still use the captured photo
+          const photoUrl = canvas.toDataURL('image/jpeg');
+          setCapturedPhotoUrl(photoUrl);
+          setShowModal(true);
+          stopCamera();
+        });
+      } catch (error) {
+        console.error('Error capturing photo:', error);
+        throw error;
+      }
     } catch (error) {
-      console.error('Error drawing video frame to canvas:', error);
-      return;
+      console.error('Error in takePhoto:', error);
     }
+  };
 
-    // Load the frame image and draw it on top of the photo
-    const loadFrameAndFinish = () => {
-      console.log('Starting loadFrameAndFinish');
-      return new Promise((resolve, reject) => {
-        const frameImage = new Image();
-        console.log('Created frame image object');
+  // Load the frame image and draw it on top of the photo
+  const loadFrameAndFinish = () => {
+    console.log('Starting loadFrameAndFinish');
+    return new Promise((resolve, reject) => {
+      const frameImage = new Image();
+      console.log('Created frame image object');
+      
+      frameImage.onload = () => {
+        console.log('Frame image loaded successfully');
+        // Draw the frame on top of the video capture
+        const canvas = document.createElement('canvas');
+        const videoElement = videoRef.current;
+        if (!videoElement) {
+          reject(new Error('Video element not available'));
+          return;
+        }
         
-        frameImage.onload = () => {
-          console.log('Frame image loaded successfully');
-          // Draw the frame on top of the video capture
-          context.drawImage(frameImage, 0, 0, size, size);
-          console.log('Frame drawn on canvas');
-          
-          // Convert to data URL after the frame is drawn
-          const photoUrl = canvas.toDataURL('image/jpeg');
-          console.log('Photo converted to data URL');
-          setCapturedPhotoUrl(photoUrl);
-          setShowModal(true);
-          stopCamera();
-          resolve(null);
-        };
+        const size = Math.min(videoElement.videoWidth, videoElement.videoHeight);
+        canvas.width = size;
+        canvas.height = size;
         
-        frameImage.onerror = (error) => {
-          console.error('Error loading frame image:', error);
-          // Fall back to photo without frame if frame fails to load
-          const photoUrl = canvas.toDataURL('image/jpeg');
-          setCapturedPhotoUrl(photoUrl);
-          setShowModal(true);
-          stopCamera();
-          reject(error);
-        };
+        const context = canvas.getContext('2d');
+        if (!context) {
+          reject(new Error('Failed to get canvas context'));
+          return;
+        }
         
-        console.log('Setting frame image source');
-        frameImage.src = 'https://i.ibb.co/mV2jdW46/SEYU-FRAME.png';
-      });
-    };
-
-    // Execute the frame loading and photo finishing
-    loadFrameAndFinish().catch(error => {
-      console.error('Failed to load frame:', error);
-      // Ensure we show the modal even if frame loading fails
-      setShowModal(true);
+        // First draw the video frame
+        const sx = (videoElement.videoWidth - size) / 2;
+        const sy = (videoElement.videoHeight - size) / 2;
+        context.drawImage(
+          videoElement,
+          sx, sy, size, size,
+          0, 0, size, size
+        );
+        
+        // Then draw the frame on top
+        context.drawImage(frameImage, 0, 0, size, size);
+        console.log('Frame drawn on canvas');
+        
+        // Convert to data URL after the frame is drawn
+        const photoUrl = canvas.toDataURL('image/jpeg');
+        console.log('Photo converted to data URL');
+        setCapturedPhotoUrl(photoUrl);
+        setShowModal(true);
+        stopCamera();
+        resolve(null);
+      };
+      
+      frameImage.onerror = (error) => {
+        console.error('Error loading frame image:', error);
+        // Fall back to photo without frame if frame fails to load
+        const canvas = document.createElement('canvas');
+        const videoElement = videoRef.current;
+        if (!videoElement) {
+          reject(new Error('Video element not available'));
+          return;
+        }
+        
+        const size = Math.min(videoElement.videoWidth, videoElement.videoHeight);
+        canvas.width = size;
+        canvas.height = size;
+        
+        const context = canvas.getContext('2d');
+        if (!context) {
+          reject(new Error('Failed to get canvas context'));
+          return;
+        }
+        
+        // Draw just the video frame without the overlay
+        const sx = (videoElement.videoWidth - size) / 2;
+        const sy = (videoElement.videoHeight - size) / 2;
+        context.drawImage(
+          videoElement,
+          sx, sy, size, size,
+          0, 0, size, size
+        );
+        
+        const photoUrl = canvas.toDataURL('image/jpeg');
+        setCapturedPhotoUrl(photoUrl);
+        setShowModal(true);
+        stopCamera();
+        reject(error);
+      };
+      
+      console.log('Setting frame image source');
+      frameImage.src = 'https://i.ibb.co/mV2jdW46/SEYU-FRAME.png';
     });
   };
 
