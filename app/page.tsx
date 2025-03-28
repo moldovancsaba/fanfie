@@ -91,6 +91,7 @@ export default function Home() {
       streamRef.current = stream;
       
       if (videoRef.current) {
+        videoRef.current.crossOrigin = "anonymous";
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
         console.log('Camera stream started successfully');
@@ -222,7 +223,10 @@ export default function Home() {
       canvas.width = size;
       canvas.height = size;
       
-      const context = canvas.getContext('2d');
+      const context = canvas.getContext('2d', {
+        willReadFrequently: true,
+        alpha: false
+      });
       if (!context) {
         console.log('Failed to get canvas context');
         return;
@@ -261,87 +265,78 @@ export default function Home() {
   };
 
   // Load the frame image and draw it on top of the photo
-  const loadFrameAndFinish = () => {
+  // Load the frame image and draw it on top of the photo
+  const loadFrameAndFinish = async () => {
     console.log('Starting loadFrameAndFinish');
     return new Promise((resolve, reject) => {
       const frameImage = new Image();
+      frameImage.crossOrigin = 'anonymous';
       console.log('Created frame image object');
       
-      frameImage.onload = () => {
-        console.log('Frame image loaded successfully');
-        // Draw the frame on top of the video capture
-        const canvas = document.createElement('canvas');
-        const videoElement = videoRef.current;
-        if (!videoElement) {
-          reject(new Error('Video element not available'));
-          return;
+      frameImage.onload = async () => {
+        try {
+          console.log('Frame image loaded successfully');
+          const canvas = document.createElement('canvas');
+          const videoElement = videoRef.current;
+          if (!videoElement) {
+            reject(new Error('Video element not available'));
+            return;
+          }
+          
+          const size = Math.min(videoElement.videoWidth, videoElement.videoHeight);
+          canvas.width = size;
+          canvas.height = size;
+          
+          const context = canvas.getContext('2d', {
+            willReadFrequently: true,
+            alpha: false
+          });
+          if (!context) {
+            reject(new Error('Failed to get canvas context'));
+            return;
+          }
+          
+          // First draw the video frame
+          const sx = (videoElement.videoWidth - size) / 2;
+          const sy = (videoElement.videoHeight - size) / 2;
+          
+          try {
+            // Create bitmap from video frame
+            const videoBitmap = await createImageBitmap(videoElement);
+            context.drawImage(videoBitmap, sx, sy, size, size, 0, 0, size, size);
+            videoBitmap.close();
+            
+            // Create bitmap from frame image
+            const frameBitmap = await createImageBitmap(frameImage);
+            context.drawImage(frameBitmap, 0, 0, size, size);
+            frameBitmap.close();
+            
+            console.log('Frame drawn on canvas');
+            
+            // Convert to data URL
+            try {
+              const photoUrl = canvas.toDataURL('image/jpeg', 0.9);
+              console.log('Photo converted to data URL');
+              setCapturedPhotoUrl(photoUrl);
+              setShowModal(true);
+              stopCamera();
+              resolve(null);
+            } catch (error) {
+              console.error('Error converting to data URL:', error);
+              reject(error);
+            }
+          } catch (error) {
+            console.error('Error creating image bitmap:', error);
+            reject(error);
+          }
+        } catch (error) {
+          console.error('Error in frame processing:', error);
+          reject(error);
         }
-        
-        const size = Math.min(videoElement.videoWidth, videoElement.videoHeight);
-        canvas.width = size;
-        canvas.height = size;
-        
-        const context = canvas.getContext('2d');
-        if (!context) {
-          reject(new Error('Failed to get canvas context'));
-          return;
-        }
-        
-        // First draw the video frame
-        const sx = (videoElement.videoWidth - size) / 2;
-        const sy = (videoElement.videoHeight - size) / 2;
-        context.drawImage(
-          videoElement,
-          sx, sy, size, size,
-          0, 0, size, size
-        );
-        
-        // Then draw the frame on top
-        context.drawImage(frameImage, 0, 0, size, size);
-        console.log('Frame drawn on canvas');
-        
-        // Convert to data URL after the frame is drawn
-        const photoUrl = canvas.toDataURL('image/jpeg');
-        console.log('Photo converted to data URL');
-        setCapturedPhotoUrl(photoUrl);
-        setShowModal(true);
-        stopCamera();
-        resolve(null);
       };
       
       frameImage.onerror = (error) => {
         console.error('Error loading frame image:', error);
-        // Fall back to photo without frame if frame fails to load
-        const canvas = document.createElement('canvas');
-        const videoElement = videoRef.current;
-        if (!videoElement) {
-          reject(new Error('Video element not available'));
-          return;
-        }
-        
-        const size = Math.min(videoElement.videoWidth, videoElement.videoHeight);
-        canvas.width = size;
-        canvas.height = size;
-        
-        const context = canvas.getContext('2d');
-        if (!context) {
-          reject(new Error('Failed to get canvas context'));
-          return;
-        }
-        
-        // Draw just the video frame without the overlay
-        const sx = (videoElement.videoWidth - size) / 2;
-        const sy = (videoElement.videoHeight - size) / 2;
-        context.drawImage(
-          videoElement,
-          sx, sy, size, size,
-          0, 0, size, size
-        );
-        
-        const photoUrl = canvas.toDataURL('image/jpeg');
-        setCapturedPhotoUrl(photoUrl);
-        setShowModal(true);
-        stopCamera();
         reject(error);
       };
       
@@ -349,7 +344,6 @@ export default function Home() {
       frameImage.src = 'https://i.ibb.co/mV2jdW46/SEYU-FRAME.png';
     });
   };
-
   return (
     <>
       <main className="p-4 flex flex-col items-center landscape:flex-row landscape:items-start landscape:justify-center min-h-[calc(100vh-40px)]">
@@ -367,6 +361,7 @@ export default function Home() {
               className="object-cover transition-all duration-300"
               playsInline
               muted
+              crossOrigin="anonymous"
               style={{ 
                 width: '100%', 
                 height: '100%',
