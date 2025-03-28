@@ -186,79 +186,75 @@ export default function Home() {
     }
   };
 
-  const takePhoto = () => {
+  const takePhoto = async () => {
     console.log('takePhoto triggered');
-    if (!videoRef.current || !isStreaming) {
-      console.log('Early return - videoRef or streaming check failed:', {
+    if (!videoRef.current || !isStreaming || !streamRef.current) {
+      console.log('Early return - checks failed:', {
         hasVideoRef: !!videoRef.current,
-        isStreaming
+        isStreaming,
+        hasStream: !!streamRef.current
       });
-      return;
-    }
-
-    console.log('Video dimensions:', {
-      videoWidth: videoRef.current.videoWidth,
-      videoHeight: videoRef.current.videoHeight,
-      readyState: videoRef.current.readyState,
-      offsetWidth: videoRef.current.offsetWidth,
-      offsetHeight: videoRef.current.offsetHeight
-    });
-
-    if (videoRef.current.videoWidth === 0 || videoRef.current.videoHeight === 0) {
-      console.log('Video dimensions are not valid yet, waiting...');
-      setTimeout(takePhoto, 500);
-      return;
-    }
-
-    if (videoRef.current.readyState < 2) {
-      console.log('Video is not ready yet, waiting...');
-      setTimeout(takePhoto, 500);
       return;
     }
 
     try {
-      const canvas = document.createElement('canvas');
-      const size = Math.min(videoRef.current.videoWidth, videoRef.current.videoHeight);
-      console.log('Canvas created with size:', size);
-      canvas.width = size;
-      canvas.height = size;
-      
-      const context = canvas.getContext('2d', {
-        willReadFrequently: true,
-        alpha: false
+      // Create a MediaRecorder to capture a single frame
+      const mediaRecorder = new MediaRecorder(streamRef.current, {
+        mimeType: 'video/webm'
       });
-      if (!context) {
-        console.log('Failed to get canvas context');
-        return;
-      }
-
-      const sx = (videoRef.current.videoWidth - size) / 2;
-      const sy = (videoRef.current.videoHeight - size) / 2;
-      console.log('Drawing parameters:', { sx, sy, size });
       
-      // Draw the video frame to the canvas
-      try {
-        console.log('Attempting to draw video frame to canvas');
-        context.drawImage(
-          videoRef.current,
-          sx, sy, size, size,
-          0, 0, size, size
-        );
-        console.log('Successfully drew video frame to canvas');
-        
-        // Load the frame image and draw it on top of the photo
-        loadFrameAndFinish().catch(error => {
-          console.error('Failed to load frame:', error);
-          // If frame loading fails, still use the captured photo
-          const photoUrl = canvas.toDataURL('image/jpeg');
-          setCapturedPhotoUrl(photoUrl);
-          setShowModal(true);
-          stopCamera();
-        });
-      } catch (error) {
-        console.error('Error capturing photo:', error);
-        throw error;
-      }
+      const chunks: Blob[] = [];
+      
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        try {
+          const blob = new Blob(chunks, { type: 'video/webm' });
+          const videoUrl = URL.createObjectURL(blob);
+          
+          const tempVideo = document.createElement('video');
+          tempVideo.src = videoUrl;
+          tempVideo.muted = true;
+          
+          await new Promise((resolve) => {
+            tempVideo.onloadeddata = resolve;
+            tempVideo.onerror = resolve;
+          });
+          
+          const canvas = document.createElement('canvas');
+          const size = Math.min(videoRef.current!.videoWidth, videoRef.current!.videoHeight);
+          canvas.width = size;
+          canvas.height = size;
+          
+          const context = canvas.getContext('2d', {
+            willReadFrequently: true,
+            alpha: false
+          });
+          
+          if (!context) {
+            throw new Error('Failed to get canvas context');
+          }
+          
+          context.drawImage(tempVideo, 0, 0, size, size);
+          
+          // Clean up
+          URL.revokeObjectURL(videoUrl);
+          tempVideo.remove();
+          
+          // Now proceed with frame overlay
+          await loadFrameAndFinish();
+        } catch (error) {
+          console.error('Error processing video frame:', error);
+        }
+      };
+
+      // Record for a very short duration to capture a single frame
+      mediaRecorder.start();
+      setTimeout(() => mediaRecorder.stop(), 100);
     } catch (error) {
       console.error('Error in takePhoto:', error);
     }
