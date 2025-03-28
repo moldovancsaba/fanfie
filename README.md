@@ -52,6 +52,9 @@ No environment variables are required for the current version.
 - Basic web application structure
 - Responsive design
 - Camera access and control (Start/Stop functionality)
+- Enhanced camera view that adapts to orientation changes
+- Optimized interface with a clean, minimalist design
+- Restructured UI components for better responsive behavior
 
 ### Camera Usage Instructions
 1. When you first open the application, you'll see a 'Start Camera' button
@@ -59,6 +62,7 @@ No environment variables are required for the current version.
 3. Grant camera permissions when prompted
 4. The camera feed will appear in the video container
 5. Click 'Stop Camera' to end the camera feed
+6. The layout automatically adjusts based on your device orientation (portrait or landscape)
 
 ### Browser Compatibility
 - Works best on modern browsers (Chrome, Firefox, Safari, Edge)
@@ -72,5 +76,6 @@ No environment variables are required for the current version.
 - Image filters and effects
 
 ## Version History
+- v0.3.3-dev - Implemented fully responsive UI for different device orientations (portrait and landscape), removed 'Camera Control' title for a cleaner interface, and restructured UI components for improved responsiveness
 - v0.2.0 - Added camera start/stop functionality
 - v0.1.0 - Initial setup with basic page structure
