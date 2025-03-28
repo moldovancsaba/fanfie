@@ -17,31 +17,19 @@ export default function Home() {
   const isLandscape = () => window.matchMedia('(orientation: landscape)').matches;
 
   const adjustVideoSize = () => {
-    if (videoRef.current && containerRef.current) {
-      const containerWidth = containerRef.current.offsetWidth;
-      const containerHeight = containerRef.current.offsetHeight;
-      const orientation = isLandscape() ? 'landscape' : 'portrait';
-      
-      let size;
-      if (orientation === 'portrait') {
-        // In portrait mode, keep it square but respect container width
-        size = containerWidth;
-        videoRef.current.style.maxHeight = '100vw'; // Limit height to viewport width for square aspect
-      } else {
-        // In landscape mode, optimize for height while maintaining aspect ratio
-        size = Math.min(containerWidth, window.innerHeight * 0.8);
-        videoRef.current.style.maxHeight = '80vh'; // Allow more height in landscape
+    if (videoRef.current) {
+      const video = videoRef.current;
+      // Wait for video metadata to load
+      if (video.videoWidth === 0) {
+        setTimeout(adjustVideoSize, 100);
+        return;
       }
-      
-      // Apply the calculated size
-      videoRef.current.style.width = `${size}px`;
-      videoRef.current.style.height = `${size}px`;
-      
-      // Ensure video fits within container
-      videoRef.current.style.maxWidth = '100%';
-      videoRef.current.style.objectFit = 'cover';
-      
-      console.log(`Adjusted video size for ${orientation}: ${size}px`);
+
+      // Calculate size based on video dimensions
+      const size = Math.min(video.videoWidth, video.videoHeight);
+      video.style.width = `${size}px`;
+      video.style.height = `${size}px`;
+      console.log('Video size adjusted:', { size });
     }
   };
 
@@ -80,18 +68,39 @@ export default function Home() {
 
   const startCamera = async () => {
     try {
-      setError(null);
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: 'environment',
-          aspectRatio: 1,
-        }
-      });
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
       
+      const constraints = {
+        video: {
+          width: { ideal: 1080 },
+          height: { ideal: 1080 },
+          facingMode: { ideal: 'user' },
+          // Add secure video constraints
+          advanced: [
+            {
+              // Force secure context
+              resizeMode: 'crop-and-scale'
+            }
+          ]
+        },
+        audio: false
+      };
+
+      console.log('Requesting camera with constraints:', constraints);
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log('Camera access granted');
+
       streamRef.current = stream;
       
       if (videoRef.current) {
-        videoRef.current.crossOrigin = "anonymous";
+        // Set properties for secure context
+        videoRef.current.setAttribute('crossorigin', 'anonymous');
+        videoRef.current.setAttribute('playsinline', '');
+        videoRef.current.muted = true;
+        
+        // Set stream
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
         console.log('Camera stream started successfully');
@@ -101,9 +110,9 @@ export default function Home() {
         // Adjust video size after camera starts
         adjustVideoSize();
       }
-    } catch (err) {
-      setError('Camera access failed. Please ensure permissions are granted.');
-      console.error('Camera error:', err);
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      setError('Failed to access camera. Please ensure camera permissions are granted.');
     }
   };
 
@@ -188,73 +197,98 @@ export default function Home() {
 
   const takePhoto = async () => {
     console.log('takePhoto triggered');
-    if (!videoRef.current || !isStreaming || !streamRef.current) {
+    if (!videoRef.current || !isStreaming) {
       console.log('Early return - checks failed:', {
         hasVideoRef: !!videoRef.current,
-        isStreaming,
-        hasStream: !!streamRef.current
+        isStreaming
       });
       return;
     }
 
     try {
-      // Create a MediaRecorder to capture a single frame
-      const mediaRecorder = new MediaRecorder(streamRef.current, {
-        mimeType: 'video/webm'
+      const canvas = new OffscreenCanvas(
+        videoRef.current.videoWidth,
+        videoRef.current.videoHeight
+      );
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        throw new Error('Failed to get canvas context');
+      }
+      
+      // Set the size
+      const size = Math.min(
+        videoRef.current.videoWidth,
+        videoRef.current.videoHeight
+      );
+      canvas.width = size;
+      canvas.height = size;
+      
+      // Calculate source coordinates for center crop
+      const sx = (videoRef.current.videoWidth - size) / 2;
+      const sy = (videoRef.current.videoHeight - size) / 2;
+      
+      // Draw the video frame
+      ctx.drawImage(
+        videoRef.current,
+        sx, sy, size, size,
+        0, 0, size, size
+      );
+      
+      // Convert to blob
+      const blob = await canvas.convertToBlob({
+        type: 'image/jpeg',
+        quality: 0.9
       });
       
-      const chunks: Blob[] = [];
+      // Create a URL for the captured image
+      const url = URL.createObjectURL(blob);
       
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          chunks.push(e.data);
-        }
-      };
-
-      mediaRecorder.onstop = async () => {
-        try {
-          const blob = new Blob(chunks, { type: 'video/webm' });
-          const videoUrl = URL.createObjectURL(blob);
+      // Create a new canvas for the final composition
+      const finalCanvas = new OffscreenCanvas(size, size);
+      const finalCtx = finalCanvas.getContext('2d');
+      
+      if (!finalCtx) {
+        throw new Error('Failed to get final canvas context');
+      }
+      
+      // Create an image from the blob URL
+      const img = new Image();
+      img.src = url;
+      
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
+      
+      // Draw the captured image
+      finalCtx.drawImage(img, 0, 0);
+      
+      // Clean up the temporary URL
+      URL.revokeObjectURL(url);
+      
+      // Now load and draw the frame from our public directory
+      const frameImage = new Image();
+      frameImage.src = '/frame.png'; // Frame image should be in public directory
+      
+      await new Promise((resolve, reject) => {
+        frameImage.onload = () => {
+          finalCtx.drawImage(frameImage, 0, 0, size, size);
           
-          const tempVideo = document.createElement('video');
-          tempVideo.src = videoUrl;
-          tempVideo.muted = true;
-          
-          await new Promise((resolve) => {
-            tempVideo.onloadeddata = resolve;
-            tempVideo.onerror = resolve;
-          });
-          
-          const canvas = document.createElement('canvas');
-          const size = Math.min(videoRef.current!.videoWidth, videoRef.current!.videoHeight);
-          canvas.width = size;
-          canvas.height = size;
-          
-          const context = canvas.getContext('2d', {
-            willReadFrequently: true,
-            alpha: false
-          });
-          
-          if (!context) {
-            throw new Error('Failed to get canvas context');
-          }
-          
-          context.drawImage(tempVideo, 0, 0, size, size);
-          
-          // Clean up
-          URL.revokeObjectURL(videoUrl);
-          tempVideo.remove();
-          
-          // Now proceed with frame overlay
-          await loadFrameAndFinish();
-        } catch (error) {
-          console.error('Error processing video frame:', error);
-        }
-      };
-
-      // Record for a very short duration to capture a single frame
-      mediaRecorder.start();
-      setTimeout(() => mediaRecorder.stop(), 100);
+          // Convert final composition to blob
+          finalCanvas.convertToBlob({
+            type: 'image/jpeg',
+            quality: 0.9
+          }).then(finalBlob => {
+            const finalUrl = URL.createObjectURL(finalBlob);
+            setCapturedPhotoUrl(finalUrl);
+            setShowModal(true);
+            stopCamera();
+            resolve(null);
+          }).catch(reject);
+        };
+        
+        frameImage.onerror = reject;
+      });
     } catch (error) {
       console.error('Error in takePhoto:', error);
     }
@@ -337,7 +371,7 @@ export default function Home() {
       };
       
       console.log('Setting frame image source');
-      frameImage.src = 'https://i.ibb.co/mV2jdW46/SEYU-FRAME.png';
+      frameImage.src = '/frame.png';
     });
   };
   return (
@@ -366,7 +400,7 @@ export default function Home() {
               }}
             />
             <img 
-              src="https://i.ibb.co/mV2jdW46/SEYU-FRAME.png" 
+              src="/frame.png" 
               alt="Camera Frame" 
               className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10"
               style={{
@@ -397,7 +431,7 @@ export default function Home() {
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >
-            Take Picture
+            Take Picture (Select Camera View)
           </button>
         </div>
       </main>
