@@ -13,18 +13,58 @@ export default function Home() {
   const streamRef = useRef<MediaStream | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const adjustVideoSize = () => {
-      if (videoRef.current && containerRef.current) {
-        const containerWidth = containerRef.current.offsetWidth;
-        const size = Math.min(containerWidth, window.innerHeight * 0.7);
-        videoRef.current.style.width = `${size}px`;
-        videoRef.current.style.height = `${size}px`;
-      }
-    };
+  const isLandscape = () => window.matchMedia('(orientation: landscape)').matches;
 
+  const adjustVideoSize = () => {
+    if (videoRef.current && containerRef.current) {
+      const containerWidth = containerRef.current.offsetWidth;
+      const containerHeight = containerRef.current.offsetHeight;
+      const orientation = isLandscape() ? 'landscape' : 'portrait';
+      
+      let size;
+      if (orientation === 'portrait') {
+        // In portrait mode, keep it square but respect container width
+        size = containerWidth;
+        videoRef.current.style.maxHeight = '100vw'; // Limit height to viewport width for square aspect
+      } else {
+        // In landscape mode, optimize for height while maintaining aspect ratio
+        size = Math.min(containerWidth, window.innerHeight * 0.8);
+        videoRef.current.style.maxHeight = '80vh'; // Allow more height in landscape
+      }
+      
+      // Apply the calculated size
+      videoRef.current.style.width = `${size}px`;
+      videoRef.current.style.height = `${size}px`;
+      
+      // Ensure video fits within container
+      videoRef.current.style.maxWidth = '100%';
+      videoRef.current.style.objectFit = 'cover';
+      
+      console.log(`Adjusted video size for ${orientation}: ${size}px`);
+    }
+  };
+
+  useEffect(() => {
+    // Initial sizing
+    adjustVideoSize();
+    
+    // Listen for resize events
     window.addEventListener('resize', adjustVideoSize);
-    return () => window.removeEventListener('resize', adjustVideoSize);
+    
+    // Listen for orientation changes
+    // Add a more robust orientation change listener
+    window.addEventListener('orientationchange', () => {
+      // Small delay to ensure the browser has updated dimensions after rotation
+      setTimeout(() => {
+        console.log('Orientation changed, adjusting video size');
+        adjustVideoSize();
+      }, 300); // Slightly longer delay for more reliable orientation change detection
+    });
+    
+    return () => {
+      window.removeEventListener('resize', adjustVideoSize);
+      window.removeEventListener('orientationchange', () => setTimeout(adjustVideoSize, 300));
+    };
   }, []);
 
   // Close modal when Escape key is pressed
@@ -53,6 +93,9 @@ export default function Home() {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
         setIsStreaming(true);
+        
+        // Adjust video size after camera starts
+        adjustVideoSize();
       }
     } catch (err) {
       setError('Camera access failed. Please ensure permissions are granted.');
@@ -176,12 +219,18 @@ export default function Home() {
 
         {/* Camera Section */}
         <div className="w-full max-w-md landscape:max-w-[50%] landscape:mr-4 mb-4 landscape:mb-0" ref={containerRef}>
-          <div className="bg-gray-100 rounded-lg overflow-hidden" style={{ aspectRatio: '1' }}>
+          <div className="bg-gray-100 rounded-lg overflow-hidden relative flex items-center justify-center" style={{ aspectRatio: '1' }}>
             <video
               ref={videoRef}
-              className="w-full h-full object-cover"
+              className="object-cover transition-all duration-300"
               playsInline
               muted
+              style={{ 
+                width: '100%', 
+                height: '100%',
+                objectFit: 'cover',
+                borderRadius: '0.375rem' // 6px to match rounded-lg
+              }}
             />
           </div>
         </div>
@@ -295,28 +344,62 @@ export default function Home() {
         
         /* Responsive layout styles */
         @media (orientation: landscape) {
-          .landscape\:flex-row {
+          .landscape\\:flex-row {
             flex-direction: row;
           }
           
-          .landscape\:items-start {
+          .landscape\\:items-start {
             align-items: flex-start;
           }
           
-          .landscape\:justify-center {
+          .landscape\\:justify-center {
             justify-content: center;
           }
           
-          .landscape\:max-w-\[50\%\] {
+          .landscape\\:max-w-\\[50\\%\\] {
             max-width: 50%;
           }
           
-          .landscape\:mr-4 {
+          .landscape\\:mr-4 {
             margin-right: 1rem;
           }
           
-          .landscape\:space-y-4 > * + * {
+          .landscape\\:space-y-4 > * + * {
             margin-top: 1rem;
+          }
+        }
+        
+        /* Video container adjustments */
+        video {
+          transition: width 0.3s ease, height 0.3s ease, transform 0.3s ease;
+        }
+        
+        /* Enhance video display within container */
+        @media (orientation: portrait) {
+          video {
+            max-width: 100%;
+            max-height: 100vw;
+            object-position: center;
+          }
+          
+          /* Ensure container keeps square aspect in portrait */
+          div[style*="aspectRatio"] {
+            width: 100%;
+            max-width: 100vw;
+          }
+        }
+        
+        @media (orientation: landscape) {
+          video {
+            max-width: 100%;
+            max-height: 80vh;
+            object-position: center;
+          }
+          
+          /* Allow container to adjust in landscape while maintaining aspect */
+          div[style*="aspectRatio"] {
+            width: 100%;
+            height: auto;
           }
         }
       `}</style>
