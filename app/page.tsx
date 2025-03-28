@@ -197,100 +197,90 @@ export default function Home() {
 
   const takePhoto = async () => {
     console.log('takePhoto triggered');
-    if (!videoRef.current || !isStreaming) {
+    if (!videoRef.current || !isStreaming || !streamRef.current) {
       console.log('Early return - checks failed:', {
         hasVideoRef: !!videoRef.current,
-        isStreaming
+        isStreaming,
+        hasStream: !!streamRef.current
       });
       return;
     }
 
     try {
-      // Create initial canvas
+      // Get the video track
+      const videoTrack = streamRef.current.getVideoTracks()[0];
+      if (!videoTrack) {
+        throw new Error('No video track available');
+      }
+
+      // Create ImageCapture object
+      // @ts-ignore - ImageCapture might not be recognized by TypeScript
+      const imageCapture = new ImageCapture(videoTrack);
+
+      // Capture a bitmap
+      const bitmap = await imageCapture.grabFrame();
+      console.log('Captured bitmap:', {
+        width: bitmap.width,
+        height: bitmap.height
+      });
+
+      // Create a canvas with the same dimensions
       const canvas = document.createElement('canvas');
-      const video = videoRef.current;
-      
-      // Set the size
-      const size = Math.min(
-        video.videoWidth,
-        video.videoHeight
-      );
+      const size = Math.min(bitmap.width, bitmap.height);
       canvas.width = size;
       canvas.height = size;
-      
+
+      // Get the drawing context
       const ctx = canvas.getContext('2d');
       if (!ctx) {
-        throw new Error('Failed to get canvas context');
+        throw new Error('Could not get canvas context');
       }
-      
-      // Calculate source coordinates for center crop
-      const sx = (video.videoWidth - size) / 2;
-      const sy = (video.videoHeight - size) / 2;
-      
-      // Draw the video frame
+
+      // Calculate center crop coordinates
+      const sx = (bitmap.width - size) / 2;
+      const sy = (bitmap.height - size) / 2;
+
+      // Draw the bitmap with center crop
       ctx.drawImage(
-        video,
-        sx, sy, size, size,
-        0, 0, size, size
+        bitmap,
+        sx, sy, size, size,  // source coordinates
+        0, 0, size, size     // destination coordinates
       );
-      
-      // Create final canvas for composition
-      const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = size;
-      finalCanvas.height = size;
-      
-      const finalCtx = finalCanvas.getContext('2d');
-      if (!finalCtx) {
-        throw new Error('Failed to get final canvas context');
-      }
-      
-      // Draw the captured frame
-      finalCtx.drawImage(canvas, 0, 0);
-      
-      // Load and draw the frame
+
+      // Load the frame overlay
       const frameImage = new Image();
-      frameImage.crossOrigin = 'anonymous';
-      
       await new Promise((resolve, reject) => {
         frameImage.onload = () => {
-          // Draw the frame on top
-          finalCtx.drawImage(frameImage, 0, 0, size, size);
-          
-          try {
-            const dataUrl = finalCanvas.toDataURL('image/jpeg', 0.9);
-            setCapturedPhotoUrl(dataUrl);
-            setShowModal(true);
-            stopCamera();
-            resolve(null);
-          } catch (error) {
-            // Fallback to blob if toDataURL fails
-            finalCanvas.toBlob(
-              (blob) => {
-                if (!blob) {
-                  reject(new Error('Failed to create blob'));
-                  return;
-                }
-                const url = URL.createObjectURL(blob);
-                setCapturedPhotoUrl(url);
-                setShowModal(true);
-                stopCamera();
-                resolve(null);
-              },
-              'image/jpeg',
-              0.9
-            );
-          }
+          // Draw the frame overlay
+          ctx.drawImage(frameImage, 0, 0, size, size);
+          resolve(null);
         };
-        
-        frameImage.onerror = (error) => {
-          console.error('Error loading frame:', error);
-          reject(error);
-        };
-        
+        frameImage.onerror = reject;
         frameImage.src = '/frame.png';
       });
+
+      // Convert to data URL with fallback to Blob URL
+      try {
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        setCapturedPhotoUrl(dataUrl);
+      } catch (error) {
+        console.warn('toDataURL failed, falling back to Blob:', error);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            setCapturedPhotoUrl(url);
+          }
+        }, 'image/jpeg', 0.9);
+      }
+
+      setShowModal(true);
+      stopCamera();
+
     } catch (error) {
       console.error('Error in takePhoto:', error);
+      if (error instanceof Error) {
+        console.error('Error details:', error.message);
+      }
     }
   };
 
