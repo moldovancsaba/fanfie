@@ -93,7 +93,9 @@ export default function Home() {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
+        console.log('Camera stream started successfully');
         setIsStreaming(true);
+        console.log('isStreaming state set to true');
         
         // Adjust video size after camera starts
         adjustVideoSize();
@@ -193,6 +195,28 @@ export default function Home() {
       return;
     }
 
+    console.log('Video dimensions:', {
+      videoWidth: videoRef.current.videoWidth,
+      videoHeight: videoRef.current.videoHeight,
+      readyState: videoRef.current.readyState,
+      offsetWidth: videoRef.current.offsetWidth,
+      offsetHeight: videoRef.current.offsetHeight
+    });
+
+    if (videoRef.current.videoWidth === 0 || videoRef.current.videoHeight === 0) {
+      console.log('Video dimensions are not valid yet, waiting...');
+      // Wait a brief moment and try again
+      setTimeout(takePhoto, 500);
+      return;
+    }
+
+    if (videoRef.current.readyState < 2) { // HAVE_CURRENT_DATA = 2
+      console.log('Video is not ready yet, waiting...');
+      // Wait a brief moment and try again
+      setTimeout(takePhoto, 500);
+      return;
+    }
+
     const canvas = document.createElement('canvas');
     const size = Math.min(videoRef.current.videoWidth, videoRef.current.videoHeight);
     console.log('Canvas created with size:', size);
@@ -210,11 +234,18 @@ export default function Home() {
     console.log('Drawing parameters:', { sx, sy, size });
     
     // Draw the video frame to the canvas
-    context.drawImage(
-      videoRef.current,
-      sx, sy, size, size,
-      0, 0, size, size
-    );
+    try {
+      console.log('Attempting to draw video frame to canvas');
+      context.drawImage(
+        videoRef.current,
+        sx, sy, size, size,
+        0, 0, size, size
+      );
+      console.log('Successfully drew video frame to canvas');
+    } catch (error) {
+      console.error('Error drawing video frame to canvas:', error);
+      return;
+    }
 
     // Load the frame image and draw it on top of the photo
     const loadFrameAndFinish = () => {
@@ -306,7 +337,10 @@ export default function Home() {
           </button>
 
           <button
-            onClick={takePhoto}
+            onClick={() => {
+              console.log('Take Picture button clicked');
+              takePhoto();
+            }}
             disabled={!isStreaming}
             className={`w-full py-2 px-4 rounded transition-colors ${
               isStreaming
