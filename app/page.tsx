@@ -76,14 +76,7 @@ export default function Home() {
         video: {
           width: { ideal: 1080 },
           height: { ideal: 1080 },
-          facingMode: { ideal: 'user' },
-          // Add secure video constraints
-          advanced: [
-            {
-              // Force secure context
-              resizeMode: 'crop-and-scale'
-            }
-          ]
+          facingMode: { ideal: 'user' }
         },
         audio: false
       };
@@ -405,42 +398,38 @@ export default function Home() {
   };
   return (
     <>
-      <main className="p-4 flex flex-col items-center landscape:flex-row landscape:items-start landscape:justify-center min-h-[calc(100vh-40px)]">
+      <main className="flex flex-col landscape:flex-row items-center justify-center h-[calc(100vh-var(--footer-height))] overflow-hidden w-full">
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4">
+          <div className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded z-10">
             {error}
           </div>
         )}
 
         {/* Camera Section */}
-        <div className="w-full max-w-md landscape:max-w-[50%] landscape:mr-4 mb-4 landscape:mb-0" ref={containerRef}>
-          <div className="bg-gray-100 rounded-lg overflow-hidden relative flex items-center justify-center" style={{ aspectRatio: '1' }}>
+        <div className="camera-section w-full max-w-md h-[calc(50vh-var(--section-gap))] landscape:h-[calc(100vh-var(--footer-height))] landscape:w-[calc(50vw-var(--section-gap))] flex items-center justify-center" ref={containerRef}>
+          <div className="bg-gray-100 rounded-lg overflow-hidden relative flex items-center justify-center aspect-square" 
+               style={{ 
+                 width: 'min(calc(50vh - var(--section-gap)), 100%)',
+                 height: 'min(calc(50vh - var(--section-gap)), 100%)'
+               }}>
             <video
               ref={videoRef}
-              className="object-cover transition-all duration-300"
+              className="object-cover transition-all duration-300 w-full h-full rounded-lg"
               playsInline
               muted
               crossOrigin="anonymous"
-              style={{ 
-                width: '100%', 
-                height: '100%',
-                objectFit: 'cover',
-                borderRadius: '0.375rem' // 6px to match rounded-lg
-              }}
             />
             <img 
               src="/frame.png" 
               alt="Camera Frame" 
-              className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10"
-              style={{
-                borderRadius: '0.375rem' // 6px to match video rounded-lg
-              }}
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10 rounded-lg"
             />
           </div>
         </div>
 
         {/* Buttons Section */}
-        <div className="w-full max-w-md landscape:max-w-[50%] space-y-2 landscape:space-y-4">
+        <div className="buttons-section w-full max-w-md h-[calc(50vh-var(--section-gap))] landscape:h-[calc(100vh-var(--footer-height))] landscape:w-[calc(50vw-var(--section-gap))] buttons-container">
+          <div className="flex flex-col justify-center h-full gap-4 px-4">
           <button
             onClick={isStreaming ? stopCamera : startCamera}
             className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors"
@@ -462,11 +451,12 @@ export default function Home() {
           >
             Take Picture (Select Camera View)
           </button>
+          </div>
         </div>
       </main>
       
       {/* Footer with Policy Links */}
-      <footer className="bg-gray-100 py-2 px-4 text-center text-sm text-gray-600 w-full">
+      <footer className="footer-container text-center text-sm text-gray-600 bg-white py-2">
         <div className="flex justify-center space-x-4">
           <Link href="/terms" className="hover:text-blue-500 hover:underline">Terms and Conditions</Link>
           <Link href="/privacy" className="hover:text-blue-500 hover:underline">Privacy Policy</Link>
@@ -585,9 +575,6 @@ export default function Home() {
             max-width: 50%;
           }
           
-          .landscape\\:mr-4 {
-            margin-right: 1rem;
-          }
           
           .landscape\\:space-y-4 > * + * {
             margin-top: 1rem;
@@ -603,31 +590,33 @@ export default function Home() {
         @media (orientation: portrait) {
           video {
             max-width: 100%;
-            max-height: 100vw;
+            max-height: calc(50vh - var(--section-gap));
             object-position: center;
           }
           
           /* Ensure container keeps square aspect in portrait */
           div[style*="aspectRatio"] {
             width: 100%;
-            max-width: 100vw;
+            max-width: calc(50vh - var(--section-gap));
+            max-height: calc(50vh - var(--section-gap));
           }
         }
         
         @media (orientation: landscape) {
           video {
             max-width: 100%;
-            max-height: 80vh;
+            max-height: calc(100vh - var(--footer-height));
             object-position: center;
           }
           
           /* Allow container to adjust in landscape while maintaining aspect */
           div[style*="aspectRatio"] {
             width: 100%;
-            height: auto;
+            height: 100%;
+            max-width: calc(100vh - var(--footer-height));
+            max-height: calc(100vh - var(--footer-height));
           }
         }
-        
         /* Frame and video alignment enhancements */
         img[src*="frame.png"] {
           transition: all 0.3s ease;
@@ -646,7 +635,8 @@ export default function Home() {
           img[src*="frame.png"] {
             width: 100%;
             height: 100%;
-            max-width: 100vw;
+            max-width: calc(50vh - var(--section-gap));
+            max-height: calc(50vh - var(--section-gap));
           }
         }
         
@@ -654,7 +644,8 @@ export default function Home() {
           img[src*="frame.png"] {
             width: 100%;
             height: 100%;
-            max-height: 80vh;
+            max-width: calc(100vh - var(--footer-height));
+            max-height: calc(100vh - var(--footer-height));
           }
         }
 
@@ -664,6 +655,16 @@ export default function Home() {
           align-items: center;
           justify-content: center;
         }
+        
+        /* Prevent scrolling on body */
+        body {
+          overflow: hidden;
+          position: fixed;
+          width: 100%;
+          height: 100%;
+        }
+        
+        /* Ensure main content fills available space */
       `}</style>
     </>
   );

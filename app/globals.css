@@ -1,3 +1,50 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --footer-height: 40px;
+  --section-gap: 1rem;
+}
+
+/* Root level viewport constraints */
+html, body {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: fixed;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure proper button spacing */
+.buttons-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1rem;
+  gap: 0.5rem;
+}
+
+/* Maintain footer at bottom */
+.footer-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--footer-height);
+  z-index: 50;
+  background-color: rgba(243, 244, 246, 0.95);
+  backdrop-filter: blur(5px);
+}
+
+/* Landscape orientation specific styles */
+@media (orientation: landscape) {
+  .camera-section {
+    margin-right: 1rem;
+  }
+  
+  .buttons-section {
+    margin-left: 1rem;
+  }
+}
