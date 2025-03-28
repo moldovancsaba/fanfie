@@ -184,18 +184,30 @@ export default function Home() {
   };
 
   const takePhoto = () => {
-    if (!videoRef.current || !isStreaming) return;
+    console.log('takePhoto triggered');
+    if (!videoRef.current || !isStreaming) {
+      console.log('Early return - videoRef or streaming check failed:', {
+        hasVideoRef: !!videoRef.current,
+        isStreaming
+      });
+      return;
+    }
 
     const canvas = document.createElement('canvas');
     const size = Math.min(videoRef.current.videoWidth, videoRef.current.videoHeight);
+    console.log('Canvas created with size:', size);
     canvas.width = size;
     canvas.height = size;
     
     const context = canvas.getContext('2d');
-    if (!context) return;
+    if (!context) {
+      console.log('Failed to get canvas context');
+      return;
+    }
 
     const sx = (videoRef.current.videoWidth - size) / 2;
     const sy = (videoRef.current.videoHeight - size) / 2;
+    console.log('Drawing parameters:', { sx, sy, size });
     
     // Draw the video frame to the canvas
     context.drawImage(
@@ -206,19 +218,26 @@ export default function Home() {
 
     // Load the frame image and draw it on top of the photo
     const loadFrameAndFinish = () => {
+      console.log('Starting loadFrameAndFinish');
       return new Promise((resolve, reject) => {
         const frameImage = new Image();
+        console.log('Created frame image object');
+        
         frameImage.onload = () => {
+          console.log('Frame image loaded successfully');
           // Draw the frame on top of the video capture
           context.drawImage(frameImage, 0, 0, size, size);
+          console.log('Frame drawn on canvas');
           
           // Convert to data URL after the frame is drawn
           const photoUrl = canvas.toDataURL('image/jpeg');
+          console.log('Photo converted to data URL');
           setCapturedPhotoUrl(photoUrl);
           setShowModal(true);
           stopCamera();
           resolve(null);
         };
+        
         frameImage.onerror = (error) => {
           console.error('Error loading frame image:', error);
           // Fall back to photo without frame if frame fails to load
@@ -228,6 +247,8 @@ export default function Home() {
           stopCamera();
           reject(error);
         };
+        
+        console.log('Setting frame image source');
         frameImage.src = 'https://i.ibb.co/mV2jdW46/SEYU-FRAME.png';
       });
     };
@@ -235,6 +256,8 @@ export default function Home() {
     // Execute the frame loading and photo finishing
     loadFrameAndFinish().catch(error => {
       console.error('Failed to load frame:', error);
+      // Ensure we show the modal even if frame loading fails
+      setShowModal(true);
     });
   };
 
