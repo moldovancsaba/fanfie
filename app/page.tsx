@@ -19,17 +19,26 @@ export default function Home() {
   const adjustVideoSize = () => {
     if (videoRef.current) {
       const video = videoRef.current;
-      // Wait for video metadata to load
       if (video.videoWidth === 0) {
         setTimeout(adjustVideoSize, 100);
         return;
       }
-
-      // Calculate size based on video dimensions
-      const size = Math.min(video.videoWidth, video.videoHeight);
-      video.style.width = `${size}px`;
-      video.style.height = `${size}px`;
-      console.log('Video size adjusted:', { size });
+      
+      const containerSize = Math.min(
+        video.parentElement?.clientWidth || video.videoWidth,
+        video.parentElement?.clientHeight || video.videoHeight
+      );
+      
+      // Force 1:1 aspect ratio
+      video.style.width = '100%';
+      video.style.height = '100%';
+      
+      // Center the video
+      video.style.objectFit = 'cover';
+      video.style.position = 'absolute';
+      video.style.inset = '0';
+      
+      console.log('Video size adjusted:', { containerSize });
     }
   };
 
@@ -74,8 +83,9 @@ export default function Home() {
       
       const constraints = {
         video: {
-          width: { ideal: 1080 },
-          height: { ideal: 1080 },
+          width: { min: 1080, ideal: 1080, max: 1080 },
+          height: { min: 1080, ideal: 1080, max: 1080 },
+          aspectRatio: 1.0,
           facingMode: { ideal: 'user' }
         },
         audio: false
@@ -199,17 +209,20 @@ export default function Home() {
   };
 
   const captureUsingStream = async (video: HTMLVideoElement): Promise<ImageBitmap> => {
-    // Create a canvas to capture the current frame
     const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    const size = Math.min(video.videoWidth, video.videoHeight);
+    canvas.width = size;
+    canvas.height = size;
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Failed to get canvas context');
     
-    // Draw the current frame
-    ctx.drawImage(video, 0, 0);
+    // Calculate center crop
+    const sx = (video.videoWidth - size) / 2;
+    const sy = (video.videoHeight - size) / 2;
     
-    // Convert to ImageBitmap
+    // Draw the current frame with center crop
+    ctx.drawImage(video, sx, sy, size, size, 0, 0, size, size);
+    
     return createImageBitmap(canvas);
   };
 
@@ -407,14 +420,14 @@ export default function Home() {
 
         {/* Camera Section */}
         <div className="camera-section w-full max-w-md h-[calc(50vh-var(--section-gap))] landscape:h-[calc(100vh-var(--footer-height))] landscape:w-[calc(50vw-var(--section-gap))] flex items-center justify-center" ref={containerRef}>
-          <div className="bg-gray-100 rounded-lg overflow-hidden relative flex items-center justify-center aspect-square" 
+          <div className="relative aspect-square rounded-lg overflow-hidden" 
                style={{ 
-                 width: 'min(calc(50vh - var(--section-gap)), 100%)',
-                 height: 'min(calc(50vh - var(--section-gap)), 100%)'
+                 width: 'min(100%, min(calc(50vh - var(--section-gap)), calc(50vw - var(--section-gap))))',
+                 height: 'min(100%, min(calc(50vh - var(--section-gap)), calc(50vw - var(--section-gap))))' 
                }}>
             <video
               ref={videoRef}
-              className="object-cover transition-all duration-300 w-full h-full rounded-lg"
+              className="absolute inset-0 w-full h-full object-cover"
               playsInline
               muted
               crossOrigin="anonymous"
@@ -422,7 +435,7 @@ export default function Home() {
             <img 
               src="/frame.png" 
               alt="Camera Frame" 
-              className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10 rounded-lg"
+              className="absolute inset-0 w-full h-full object-fill pointer-events-none z-10"
             />
           </div>
         </div>
@@ -557,114 +570,58 @@ export default function Home() {
           animation: scaleIn 0.2s ease-out;
         }
         
-        /* Responsive layout styles */
-        @media (orientation: landscape) {
-          .landscape\\:flex-row {
-            flex-direction: row;
-          }
-          
-          .landscape\\:items-start {
-            align-items: flex-start;
-          }
-          
-          .landscape\\:justify-center {
-            justify-content: center;
-          }
-          
-          .landscape\\:max-w-\\[50\\%\\] {
-            max-width: 50%;
-          }
-          
-          
-          .landscape\\:space-y-4 > * + * {
-            margin-top: 1rem;
-          }
-        }
-        
-        /* Video container adjustments */
-        video {
-          transition: width 0.3s ease, height 0.3s ease, transform 0.3s ease;
-        }
-        
-        /* Enhance video display within container */
-        @media (orientation: portrait) {
-          video {
-            max-width: 100%;
-            max-height: calc(50vh - var(--section-gap));
-            object-position: center;
-          }
-          
-          /* Ensure container keeps square aspect in portrait */
-          div[style*="aspectRatio"] {
-            width: 100%;
-            max-width: calc(50vh - var(--section-gap));
-            max-height: calc(50vh - var(--section-gap));
-          }
-        }
-        
-        @media (orientation: landscape) {
-          video {
-            max-width: 100%;
-            max-height: calc(100vh - var(--footer-height));
-            object-position: center;
-          }
-          
-          /* Allow container to adjust in landscape while maintaining aspect */
-          div[style*="aspectRatio"] {
-            width: 100%;
-            height: 100%;
-            max-width: calc(100vh - var(--footer-height));
-            max-height: calc(100vh - var(--footer-height));
-          }
-        }
-        /* Frame and video alignment enhancements */
-        img[src*="frame.png"] {
-          transition: all 0.3s ease;
-          pointer-events: none;
-          object-fit: contain;
-          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-        }
-
-        /* Ensure frame and video are perfectly aligned */
-        .relative:hover img[src*="frame.png"] {
-          opacity: 0.95; /* Subtle effect on hover */
-        }
-        
-        /* Optimize for different devices/orientations */
-        @media (orientation: portrait) {
-          img[src*="frame.png"] {
-            width: 100%;
-            height: 100%;
-            max-width: calc(50vh - var(--section-gap));
-            max-height: calc(50vh - var(--section-gap));
-          }
-        }
-        
-        @media (orientation: landscape) {
-          img[src*="frame.png"] {
-            width: 100%;
-            height: 100%;
-            max-width: calc(100vh - var(--footer-height));
-            max-height: calc(100vh - var(--footer-height));
-          }
-        }
-
-        /* Ensure video and frame maintain consistent dimensions */
-        .relative {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        
-        /* Prevent scrolling on body */
+        /* Root styles */
         body {
           overflow: hidden;
           position: fixed;
           width: 100%;
           height: 100%;
         }
-        
-        /* Ensure main content fills available space */
+
+        /* Camera container */
+        .camera-section {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .relative.aspect-square {
+          position: relative;
+          overflow: hidden;
+          border-radius: 0.5rem;
+          background-color: rgb(243, 244, 246);
+        }
+
+        /* Video element */
+        video {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+          transition: transform 0.3s ease;
+        }
+
+        /* Frame overlay */
+        img[src*="frame.png"] {
+          width: 100%;
+          height: 100%;
+          object-fit: fill;
+          pointer-events: none;
+          z-index: 10;
+          transition: opacity 0.3s ease;
+        }
+
+        .relative:hover img[src*="frame.png"] {
+          opacity: 0.95;
+        }
+
+        /* Button spacing */
+        .buttons-container {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          padding: 1rem;
+        }
       `}</style>
     </>
   );

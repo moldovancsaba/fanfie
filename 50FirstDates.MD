@@ -22,6 +22,12 @@ As of the latest update (v1.0.0), the application has achieved several major mil
 - Resolved deployment issues on Vercel
 - Created a stable v1.0.0 release with working photo capture
 - Implemented comprehensive error handling and browser compatibility checks
+- Enhanced camera view sizing and positioning:
+  - Implemented exact 1:1 aspect ratio for camera preview
+  - Fixed video preview cropping to match captured photo
+  - Added consistent frame overlay alignment
+  - Improved responsive layout for all screen sizes
+  - Eliminated scrolling issues in all orientations
 - Implemented fully responsive UI for different device orientations (portrait and landscape)
 - Enhanced camera view that adapts to orientation changes
 - Removed "Camera Control" title for a cleaner interface
@@ -143,7 +149,6 @@ The application is built using Next.js framework with the following technical co
 - ImageCapture API is not supported in all browsers (Safari has limited support)
 - iOS Safari may require additional user interaction for camera access
 - Some Android browsers may have inconsistent behavior with ImageCapture
-- Frame overlay may not align perfectly on certain unusual aspect ratios
 - Memory usage can be high when processing large resolution images
 
 ### ImageCapture API
@@ -158,9 +163,12 @@ The application is built using Next.js framework with the following technical co
 - Large images may fail to upload if they exceed ImgBB size limits
 - No error recovery for failed uploads beyond showing error message
 
-### Responsive Design
-- UI may not be optimized for extremely small or large viewports
-- Some elements may overlap or misalign on unusual aspect ratios
+161|### Responsive Design
+162|- UI may not be optimized for extremely small or large viewports
+
+163|### Camera Preview
+164|- Some devices may show slight differences between preview and captured photo due to hardware constraints
+165|- Frame overlay might flicker during orientation changes on some devices
 134|
 
 ## Deployment Challenges and Solutions
