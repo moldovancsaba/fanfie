@@ -195,8 +195,35 @@ export default function Home() {
     }
   };
 
+  const isImageCaptureSupported = () => {
+    if (typeof window === 'undefined') return false;
+    return typeof ImageCapture === 'function' && 'grabFrame' in ImageCapture.prototype;
+  };
+
+  const captureUsingImageCapture = async (videoTrack: MediaStreamTrack): Promise<ImageBitmap> => {
+    const imageCapture = new ImageCapture(videoTrack);
+    return imageCapture.grabFrame();
+  };
+
+  const captureUsingStream = async (video: HTMLVideoElement): Promise<ImageBitmap> => {
+    // Create a canvas to capture the current frame
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Failed to get canvas context');
+    
+    // Draw the current frame
+    ctx.drawImage(video, 0, 0);
+    
+    // Convert to ImageBitmap
+    return createImageBitmap(canvas);
+  };
+
   const takePhoto = async () => {
     console.log('takePhoto triggered');
+    console.log('ImageCapture support status:', isImageCaptureSupported());
+
     if (!videoRef.current || !isStreaming || !streamRef.current) {
       console.log('Early return - checks failed:', {
         hasVideoRef: !!videoRef.current,
@@ -207,18 +234,28 @@ export default function Home() {
     }
 
     try {
-      // Get the video track
       const videoTrack = streamRef.current.getVideoTracks()[0];
       if (!videoTrack) {
         throw new Error('No video track available');
       }
 
-      // Create ImageCapture object
-      // @ts-ignore - ImageCapture might not be recognized by TypeScript
-      const imageCapture = new ImageCapture(videoTrack);
+      let bitmap: ImageBitmap;
+      
+      // Try ImageCapture first
+      if (isImageCaptureSupported()) {
+        console.log('Attempting capture using ImageCapture API');
+        try {
+          bitmap = await captureUsingImageCapture(videoTrack);
+          console.log('Successfully captured using ImageCapture');
+        } catch (error) {
+          console.log('ImageCapture failed, falling back to stream capture', error);
+          bitmap = await captureUsingStream(videoRef.current);
+        }
+      } else {
+        console.log('ImageCapture not supported, using stream capture');
+        bitmap = await captureUsingStream(videoRef.current);
+      }
 
-      // Capture a bitmap
-      const bitmap = await imageCapture.grabFrame();
       console.log('Captured bitmap:', {
         width: bitmap.width,
         height: bitmap.height
@@ -247,11 +284,13 @@ export default function Home() {
         0, 0, size, size     // destination coordinates
       );
 
+      // Close the bitmap to free memory
+      bitmap.close();
+
       // Load the frame overlay
       const frameImage = new Image();
       await new Promise((resolve, reject) => {
         frameImage.onload = () => {
-          // Draw the frame overlay
           ctx.drawImage(frameImage, 0, 0, size, size);
           resolve(null);
         };
