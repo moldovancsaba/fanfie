@@ -206,88 +206,88 @@ export default function Home() {
     }
 
     try {
-      const canvas = new OffscreenCanvas(
-        videoRef.current.videoWidth,
-        videoRef.current.videoHeight
+      // Create initial canvas
+      const canvas = document.createElement('canvas');
+      const video = videoRef.current;
+      
+      // Set the size
+      const size = Math.min(
+        video.videoWidth,
+        video.videoHeight
       );
+      canvas.width = size;
+      canvas.height = size;
       
       const ctx = canvas.getContext('2d');
       if (!ctx) {
         throw new Error('Failed to get canvas context');
       }
       
-      // Set the size
-      const size = Math.min(
-        videoRef.current.videoWidth,
-        videoRef.current.videoHeight
-      );
-      canvas.width = size;
-      canvas.height = size;
-      
       // Calculate source coordinates for center crop
-      const sx = (videoRef.current.videoWidth - size) / 2;
-      const sy = (videoRef.current.videoHeight - size) / 2;
+      const sx = (video.videoWidth - size) / 2;
+      const sy = (video.videoHeight - size) / 2;
       
       // Draw the video frame
       ctx.drawImage(
-        videoRef.current,
+        video,
         sx, sy, size, size,
         0, 0, size, size
       );
       
-      // Convert to blob
-      const blob = await canvas.convertToBlob({
-        type: 'image/jpeg',
-        quality: 0.9
-      });
+      // Create final canvas for composition
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = size;
+      finalCanvas.height = size;
       
-      // Create a URL for the captured image
-      const url = URL.createObjectURL(blob);
-      
-      // Create a new canvas for the final composition
-      const finalCanvas = new OffscreenCanvas(size, size);
       const finalCtx = finalCanvas.getContext('2d');
-      
       if (!finalCtx) {
         throw new Error('Failed to get final canvas context');
       }
       
-      // Create an image from the blob URL
-      const img = new Image();
-      img.src = url;
+      // Draw the captured frame
+      finalCtx.drawImage(canvas, 0, 0);
       
-      await new Promise((resolve) => {
-        img.onload = resolve;
-      });
-      
-      // Draw the captured image
-      finalCtx.drawImage(img, 0, 0);
-      
-      // Clean up the temporary URL
-      URL.revokeObjectURL(url);
-      
-      // Now load and draw the frame from our public directory
+      // Load and draw the frame
       const frameImage = new Image();
-      frameImage.src = '/frame.png'; // Frame image should be in public directory
+      frameImage.crossOrigin = 'anonymous';
       
       await new Promise((resolve, reject) => {
         frameImage.onload = () => {
+          // Draw the frame on top
           finalCtx.drawImage(frameImage, 0, 0, size, size);
           
-          // Convert final composition to blob
-          finalCanvas.convertToBlob({
-            type: 'image/jpeg',
-            quality: 0.9
-          }).then(finalBlob => {
-            const finalUrl = URL.createObjectURL(finalBlob);
-            setCapturedPhotoUrl(finalUrl);
+          try {
+            const dataUrl = finalCanvas.toDataURL('image/jpeg', 0.9);
+            setCapturedPhotoUrl(dataUrl);
             setShowModal(true);
             stopCamera();
             resolve(null);
-          }).catch(reject);
+          } catch (error) {
+            // Fallback to blob if toDataURL fails
+            finalCanvas.toBlob(
+              (blob) => {
+                if (!blob) {
+                  reject(new Error('Failed to create blob'));
+                  return;
+                }
+                const url = URL.createObjectURL(blob);
+                setCapturedPhotoUrl(url);
+                setShowModal(true);
+                stopCamera();
+                resolve(null);
+              },
+              'image/jpeg',
+              0.9
+            );
+          }
         };
         
-        frameImage.onerror = reject;
+        frameImage.onerror = (error) => {
+          console.error('Error loading frame:', error);
+          reject(error);
+        };
+        
+        frameImage.src = '/frame.png';
       });
     } catch (error) {
       console.error('Error in takePhoto:', error);
