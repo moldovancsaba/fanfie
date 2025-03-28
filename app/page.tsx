@@ -197,16 +197,45 @@ export default function Home() {
     const sx = (videoRef.current.videoWidth - size) / 2;
     const sy = (videoRef.current.videoHeight - size) / 2;
     
+    // Draw the video frame to the canvas
     context.drawImage(
       videoRef.current,
       sx, sy, size, size,
       0, 0, size, size
     );
 
-    const photoUrl = canvas.toDataURL('image/jpeg');
-    setCapturedPhotoUrl(photoUrl);
-    setShowModal(true);
-    stopCamera();
+    // Load the frame image and draw it on top of the photo
+    const loadFrameAndFinish = () => {
+      return new Promise((resolve, reject) => {
+        const frameImage = new Image();
+        frameImage.onload = () => {
+          // Draw the frame on top of the video capture
+          context.drawImage(frameImage, 0, 0, size, size);
+          
+          // Convert to data URL after the frame is drawn
+          const photoUrl = canvas.toDataURL('image/jpeg');
+          setCapturedPhotoUrl(photoUrl);
+          setShowModal(true);
+          stopCamera();
+          resolve(null);
+        };
+        frameImage.onerror = (error) => {
+          console.error('Error loading frame image:', error);
+          // Fall back to photo without frame if frame fails to load
+          const photoUrl = canvas.toDataURL('image/jpeg');
+          setCapturedPhotoUrl(photoUrl);
+          setShowModal(true);
+          stopCamera();
+          reject(error);
+        };
+        frameImage.src = '/images/frame.png';
+      });
+    };
+
+    // Execute the frame loading and photo finishing
+    loadFrameAndFinish().catch(error => {
+      console.error('Failed to load frame:', error);
+    });
   };
 
   return (
@@ -231,6 +260,14 @@ export default function Home() {
                 height: '100%',
                 objectFit: 'cover',
                 borderRadius: '0.375rem' // 6px to match rounded-lg
+              }}
+            />
+            <img 
+              src="/images/frame.png" 
+              alt="Camera Frame" 
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10"
+              style={{
+                borderRadius: '0.375rem' // 6px to match video rounded-lg
               }}
             />
           </div>
@@ -420,6 +457,43 @@ export default function Home() {
             width: 100%;
             height: auto;
           }
+        }
+        
+        /* Frame and video alignment enhancements */
+        img[src*="frame.png"] {
+          transition: all 0.3s ease;
+          pointer-events: none;
+          object-fit: contain;
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+
+        /* Ensure frame and video are perfectly aligned */
+        .relative:hover img[src*="frame.png"] {
+          opacity: 0.95; /* Subtle effect on hover */
+        }
+        
+        /* Optimize for different devices/orientations */
+        @media (orientation: portrait) {
+          img[src*="frame.png"] {
+            width: 100%;
+            height: 100%;
+            max-width: 100vw;
+          }
+        }
+        
+        @media (orientation: landscape) {
+          img[src*="frame.png"] {
+            width: 100%;
+            height: 100%;
+            max-height: 80vh;
+          }
+        }
+
+        /* Ensure video and frame maintain consistent dimensions */
+        .relative {
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
       `}</style>
     </>
