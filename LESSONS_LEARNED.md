@@ -125,6 +125,58 @@ This document captures key insights, challenges, and solutions discovered during
 - Set up proper error monitoring tools to catch runtime errors in production
 - Implement analytics to track which capture methods are being used most frequently
 
+### Camera UI Layout Implementation
+- **Issue**: Achieving precise 1:1 aspect ratio with responsive behavior while maintaining optimal positioning
+- **Solution**: Implemented a combination of CSS Grid, Flexbox, and dynamic calculations
+  ```typescript
+  // Calculate maximum size while respecting viewport constraints
+  const maxSize = Math.min(
+    (availableWidth - padding * 2) * 0.8,
+    (availableHeight - padding * 2) * 0.8
+  );
+
+  // Apply precise positioning
+  const containerStyle = {
+    width: `${maxSize}px`,
+    height: `${maxSize}px`,
+    position: 'absolute',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    top: '20%',
+  };
+  ```
+
+### Best Practices for Responsive Camera UI
+1. **Size Constraints**
+   - Always use relative units (%, vh, vw) for container sizing
+   - Apply maximum size constraints (80% of viewport)
+   - Maintain strict 1:1 aspect ratio for consistency
+
+2. **Positioning**
+   - Use percentage-based positioning (20% from top)
+   - Center horizontally with transform: translateX(-50%)
+   - Adapt layout based on orientation:
+     * Portrait: Camera in top half
+     * Landscape: Camera in left half
+
+3. **Performance Considerations**
+   - Use CSS transform for centering (better performance than margin: auto)
+   - Implement smooth transitions for orientation changes
+   - Avoid layout thrashing by batching size calculations
+
+4. **Error Prevention**
+   - Always validate calculated dimensions
+   - Provide fallback values for edge cases
+   - Handle orientation changes gracefully with resize observer
+
+### UI/UX Improvements
+- Removed unnecessary "Camera Control" title for cleaner interface
+- Added smooth transitions for better user experience
+- Implemented proper spacing and margins
+- Ensured consistent behavior across devices and orientations
+
+These layout improvements have significantly enhanced the user experience and maintainability of the camera interface.
+
 ---
 
 This document will be updated as we learn more through future development iterations.
