@@ -68,8 +68,18 @@ No environment variables are required for the current version.
    - Capture the current frame from your camera
    - Apply the decorative frame overlay
    - Display the final image in a preview modal
-7. Click 'Stop Camera' to end the camera feed when you're done
-8. The layout automatically adjusts based on your device orientation (portrait or landscape)
+7. The camera view follows strict layout rules:
+   - Maintains a perfect square (1:1 aspect ratio)
+   - Takes up to 80% of the available viewport space
+   - Positions at 20% from the top of its container
+   - Automatically adjusts for both portrait and landscape orientations:
+     * Portrait: Takes up the top half of the screen
+     * Landscape: Takes up the left half of the screen
+   - Includes smooth transitions for orientation changes
+   - Features a decorative frame overlay
+   - Centers the video feed with proper cropping
+8. Click 'Stop Camera' to end the camera feed when you're done
+9. The layout automatically adjusts based on your device orientation (portrait or landscape)
 ### Browser Compatibility
 - Works best on modern browsers (Chrome, Firefox, Safari, Edge)
 - Requires HTTPS for camera access
@@ -94,6 +104,10 @@ No environment variables are required for the current version.
 - Enhanced photo management features
 - Additional image filters and effects
 - Social sharing capabilities
+- Improved sharing options with direct social media integration
+- Enhanced photo filters and frame options
+- Gallery view for managing multiple photos
+- Advanced camera controls (zoom, focus, exposure)
 ## Project Documentation
 
 Our project maintains several key documentation files:
@@ -116,6 +130,7 @@ Our project maintains several key documentation files:
 - LESSONS_LEARNED.md is updated whenever we encounter and solve new challenges
 
 ## Version History
+- v1.1.0 - Enhanced camera UI with precise 1:1 aspect ratio, proper positioning, and improved responsive layout
 - v1.0.0 - Implemented photo capture functionality using the ImageCapture API with comprehensive fallback mechanisms for cross-browser compatibility
 - v0.3.3-dev - Implemented fully responsive UI for different device orientations (portrait and landscape), removed 'Camera Control' title for a cleaner interface, and restructured UI components for improved responsiveness
 - v0.2.0 - Added camera start/stop functionality
