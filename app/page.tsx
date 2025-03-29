@@ -15,6 +15,48 @@ export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const isLandscape = () => window.matchMedia('(orientation: landscape)').matches;
+  
+  /* Camera styles */
+  const cameraStyles = {
+    // Camera container positioning and size
+    container: {
+      position: 'fixed',
+      ...(isLandscape() 
+        ? {
+            top: 0,
+            left: 0,
+            width: '50vw',
+            height: 'calc(100vh - var(--footer-height))'
+          }
+        : {
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '50vh'
+          }
+      ),
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'white',
+    },
+
+    // Camera view (video/canvas/frame)
+    camera: {
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: 'var(--camera-max-size)',
+      aspectRatio: '1',
+      backgroundColor: 'rgb(243 244 246)',
+      borderRadius: '0.5rem',
+      overflow: 'hidden',
+      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+      transition: 'all 0.3s ease-in-out',
+    }
+  };
+
   const adjustVideoSize = () => {
     if (!videoRef.current) return;
     
@@ -86,24 +128,29 @@ export default function Home() {
       adjustVideoSize();
     }, 150);
 
-    window.addEventListener('resize', handleResize);
-    
     // Listen for orientation changes
-    window.addEventListener('orientationchange', () => {
+    const handleOrientationChange = () => {
       // Wait for orientation change to complete
       setTimeout(adjustVideoSize, 300);
-    });
+    };
     
-
-  // Close modal when Escape key is pressed
-  useEffect(() => {
+    // Listen for escape key
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setShowModal(false);
     };
     
+    // Add event listeners
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleOrientationChange);
     window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, []);
+    
+    // Cleanup function
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleOrientationChange);
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, []); // Empty dependency array since we want this to run once on mount
 
   const startCamera = async () => {
     try {
@@ -448,29 +495,18 @@ export default function Home() {
           </div>
         )}
 
-        {/* Camera Section */}
+        {/* Camera - The composite component including video stream, canvas, and frame overlay */}
         <div 
-          className="fixed portrait:top-0 portrait:left-0 portrait:w-full portrait:h-[50vh] landscape:top-0 landscape:left-0 landscape:w-[50vw] landscape:h-[calc(100vh-var(--footer-height))] bg-white"
+          className="camera-section"
           style={{
             '--camera-padding': 'max(1rem, min(2vw, 2vh))',
+            ...cameraStyles.container
           } as React.CSSProperties}
           ref={containerRef}
         >
           <div 
-            className="camera-container"
-            style={{
-              position: 'absolute',
-              width: `min(80%, min(calc(50vh - var(--camera-padding) * 2), calc(50vw - var(--camera-padding) * 2)))`,
-              aspectRatio: '1',
-              top: '20%',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              backgroundColor: 'rgb(243 244 246)',
-              borderRadius: '0.5rem',
-              overflow: 'hidden',
-              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-              transition: 'all 0.3s ease-in-out',
-            }}
+            className="camera"
+            style={cameraStyles.camera}
           >
             <video
               ref={videoRef}
@@ -526,6 +562,7 @@ export default function Home() {
             <Link href="/cookies" className="hover:text-blue-500 hover:underline">Cookies</Link>
           </div>
         </footer>
+      </main>
 
       {/* Modal */}
       {showModal && capturedPhotoUrl && (
@@ -541,7 +578,14 @@ export default function Home() {
               Cancel
             </button>
             
-            <div className="aspect-square overflow-hidden rounded-lg mb-4">
+            <div className="camera-preview overflow-hidden rounded-lg mb-4" 
+                 style={{
+                   width: 'var(--camera-max-size)',
+                   aspectRatio: '1',
+                   margin: '0 auto',
+                   backgroundColor: 'rgb(243 244 246)',
+                   boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
+                 }}>
               <img
                 src={capturedPhotoUrl}
                 alt="Captured photo"
@@ -628,35 +672,39 @@ export default function Home() {
           height: 100%;
         }
 
-        /* Camera section styles */
+        /* Base camera styles */
         .camera-section {
-          position: fixed;
-          display: flex;
-          align-items: flex-start;
-          justify-content: center;
-          overflow: hidden;
-          background-color: white;
+          isolation: isolate;
+          z-index: 0;
         }
 
-        .camera-container {
+        .camera {
+          isolation: isolate;
+          z-index: 1;
+        }
+
+        /* Consistent sizing for all camera content */
+        .camera > * {
           position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        /* Ensure preview maintains same dimensions */
+        .camera-preview {
+          width: 100%;
+          max-width: min(80vw, calc(100vh - 240px));
+          margin: 0 auto;
           aspect-ratio: 1;
-          border-radius: 0.5rem;
-          overflow: hidden;
         }
 
-        @media (orientation: portrait) {
-          .camera-section {
-            width: 100vw;
-            height: 50vh;
-          }
-        }
-
-        @media (orientation: landscape) {
-          .camera-section {
-            width: 50vw;
-            height: 100vh;
-          }
+        /* Frame overlay always on top */
+        .camera img[src*="frame.png"] {
+          z-index: 2;
+          pointer-events: none;
+          object-fit: fill;
         }
 
         /* Video element */
@@ -666,19 +714,12 @@ export default function Home() {
           object-fit: cover;
           object-position: center;
         }
-
-        /* Frame overlay */
-        img[src*="frame.png"] {
-          width: 100%;
-          height: 100%;
-          object-fit: fill;
-          pointer-events: none;
-          z-index: 10;
+        
+        :root {
+          --footer-height: 40px;
+          --camera-padding: max(1rem, min(2vw, 2vh));
+          --camera-max-size: min(80%, min(calc(50vh - var(--camera-padding) * 2), calc(50vw - var(--camera-padding) * 2)));
         }
-        .relative:hover img[src*="frame.png"] {
-          opacity: 0.95;
-        }
-
         /* Button spacing */
         .buttons-container {
           display: flex;
