@@ -15,47 +15,6 @@ export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const isLandscape = () => window.matchMedia('(orientation: landscape)').matches;
-  
-  /* Camera styles */
-  const cameraStyles = {
-    // Camera container positioning and size
-    container: {
-      position: 'fixed',
-      ...(isLandscape() 
-        ? {
-            top: 0,
-            left: 0,
-            width: '50vw',
-            height: 'calc(100vh - var(--footer-height))'
-          }
-        : {
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '50vh'
-          }
-      ),
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'white',
-    },
-
-    // Camera view (video/canvas/frame)
-    camera: {
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      width: 'var(--camera-max-size)',
-      aspectRatio: '1',
-      backgroundColor: 'rgb(243 244 246)',
-      borderRadius: '0.5rem',
-      overflow: 'hidden',
-      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-      transition: 'all 0.3s ease-in-out',
-    }
-  };
 
   const adjustVideoSize = () => {
     if (!videoRef.current) return;
@@ -496,21 +455,11 @@ export default function Home() {
         )}
 
         {/* Camera - The composite component including video stream, canvas, and frame overlay */}
-        <div 
-          className="camera-section"
-          style={{
-            '--camera-padding': 'max(1rem, min(2vw, 2vh))',
-            ...cameraStyles.container
-          } as React.CSSProperties}
-          ref={containerRef}
-        >
-          <div 
-            className="camera"
-            style={cameraStyles.camera}
-          >
+        <div className="camera-section" ref={containerRef}>
+          <div className="camera">
             <video
               ref={videoRef}
-              className="absolute inset-0 w-full h-full object-cover"
+              className="camera-video"
               playsInline
               muted
               crossOrigin="anonymous"
@@ -518,11 +467,10 @@ export default function Home() {
             <img 
               src="/frame.png" 
               alt="Camera Frame" 
-              className="absolute inset-0 w-full h-full object-fill pointer-events-none z-10"
+              className="camera-frame"
             />
           </div>
         </div>
-
         {/* Buttons Section */}
         <div className="fixed portrait:bottom-[var(--footer-height)] portrait:left-0 portrait:w-full portrait:h-[50vh] landscape:top-0 landscape:right-0 landscape:w-[50vw] landscape:h-[calc(100vh-var(--footer-height))] bg-white">
           <div className="flex flex-col justify-center h-full gap-4 p-4">
@@ -578,14 +526,7 @@ export default function Home() {
               Cancel
             </button>
             
-            <div className="camera-preview overflow-hidden rounded-lg mb-4" 
-                 style={{
-                   width: 'var(--camera-max-size)',
-                   aspectRatio: '1',
-                   margin: '0 auto',
-                   backgroundColor: 'rgb(243 244 246)',
-                   boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
-                 }}>
+            <div className="camera-preview overflow-hidden rounded-lg mb-4">
               <img
                 src={capturedPhotoUrl}
                 alt="Captured photo"
@@ -640,6 +581,180 @@ export default function Home() {
       )}
 
       <style jsx global>{`
+        :root {
+          --footer-height: 40px;
+          --camera-padding: max(1rem, min(2vw, 2vh));
+          --camera-max-size: min(80%, min(calc(50vh - var(--camera-padding) * 2), calc(50vw - var(--camera-padding) * 2)));
+        }
+
+        .modal-overlay {
+          position: fixed;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background-color: rgba(0, 0, 0, 0.75);
+          z-index: 50;
+        }
+
+        .modal-content {
+          background-color: white;
+          border-radius: 0.5rem;
+          box-shadow: 0 4px 6px rgb(0 0 0 / 10%);
+          padding: 1rem;
+          max-width: 90%;
+          max-height: 90%;
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .modal-actions {
+          display: flex;
+          gap: 1rem;
+          margin-top: 1rem;
+        }
+
+        .action-button {
+          padding: 0.5rem 1rem;
+          border-radius: 0.5rem;
+          font-weight: 600;
+          transition: all 0.2s;
+        }
+
+        .action-button.download {
+          background-color: rgb(59 130 246);
+          color: white;
+        }
+
+        .action-button.download:hover {
+          background-color: rgb(37 99 235);
+        }
+
+        .action-button.share {
+          background-color: rgb(34 197 94);
+          color: white;
+        }
+
+        .action-button.share:hover {
+          background-color: rgb(22 163 74);
+        }
+
+        .action-button.retry {
+          background-color: rgb(209 213 219);
+          color: rgb(107 114 128);
+        }
+
+        .status-message {
+          text-align: center;
+          padding: 0.5rem;
+          border-radius: 0.25rem;
+          font-weight: 500;
+        }
+
+        .status-message.info {
+          background-color: rgb(191 219 254);
+          color: rgb(37 99 235);
+        }
+
+        .status-message.success {
+          background-color: rgb(209 250 229);
+          color: rgb(22 163 74);
+        }
+
+        .status-message.error {
+          background-color: rgb(254 202 202);
+          color: rgb(220 38 38);
+        }
+
+        .error-message {
+          background-color: rgb(254 202 202);
+          color: rgb(220 38 38);
+          padding: 0.5rem;
+          border-radius: 0.25rem;
+          margin: 1rem;
+          font-weight: 500;
+          text-align: center;
+        }
+          --camera-padding: max(1rem, min(2vw, 2vh));
+          --camera-max-size: min(80%, min(calc(50vh - var(--camera-padding) * 2), calc(50vw - var(--camera-padding) * 2)));
+        }
+
+        /* Camera section */
+        .camera-section {
+          position: fixed;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background-color: white;
+        }
+
+        /* Camera container */
+        .camera {
+          position: relative;
+          width: var(--camera-max-size);
+          aspect-ratio: 1;
+          background-color: rgb(243 244 246);
+          border-radius: 0.5rem;
+          overflow: hidden;
+          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+          transition: all 0.3s ease-in-out;
+        }
+
+        /* Camera video */
+        .camera-video {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        /* Frame overlay */
+        .camera-frame {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: fill;
+          pointer-events: none;
+          z-index: 10;
+        }
+
+        /* Portrait layout */
+        @media (orientation: portrait) {
+          .camera-section {
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 50vh;
+          }
+        }
+
+        /* Landscape layout */
+        @media (orientation: landscape) {
+          .camera-section {
+            top: 0;
+            left: 0;
+            width: 50vw;
+            height: calc(100vh - var(--footer-height));
+          }
+        }
+
+        /* Preview maintains same dimensions */
+        .camera-preview {
+          width: var(--camera-max-size);
+          aspect-ratio: 1;
+          margin: 0 auto;
+          background-color: rgb(243 244 246);
+          border-radius: 0.5rem;
+          overflow: hidden;
+          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        
+        /* Animation keyframes */
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
@@ -670,62 +785,6 @@ export default function Home() {
           position: fixed;
           width: 100%;
           height: 100%;
-        }
-
-        /* Base camera styles */
-        .camera-section {
-          isolation: isolate;
-          z-index: 0;
-        }
-
-        .camera {
-          isolation: isolate;
-          z-index: 1;
-        }
-
-        /* Consistent sizing for all camera content */
-        .camera > * {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-
-        /* Ensure preview maintains same dimensions */
-        .camera-preview {
-          width: 100%;
-          max-width: min(80vw, calc(100vh - 240px));
-          margin: 0 auto;
-          aspect-ratio: 1;
-        }
-
-        /* Frame overlay always on top */
-        .camera img[src*="frame.png"] {
-          z-index: 2;
-          pointer-events: none;
-          object-fit: fill;
-        }
-
-        /* Video element */
-        video {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          object-position: center;
-        }
-        
-        :root {
-          --footer-height: 40px;
-          --camera-padding: max(1rem, min(2vw, 2vh));
-          --camera-max-size: min(80%, min(calc(50vh - var(--camera-padding) * 2), calc(50vw - var(--camera-padding) * 2)));
-        }
-        /* Button spacing */
-        .buttons-container {
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-          padding: 1rem;
         }
       `}</style>
     </>
