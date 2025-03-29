@@ -15,55 +15,85 @@ export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const isLandscape = () => window.matchMedia('(orientation: landscape)').matches;
-
   const adjustVideoSize = () => {
-    if (videoRef.current) {
-      const video = videoRef.current;
-      if (video.videoWidth === 0) {
-        setTimeout(adjustVideoSize, 100);
-        return;
-      }
-      
-      const containerSize = Math.min(
-        video.parentElement?.clientWidth || video.videoWidth,
-        video.parentElement?.clientHeight || video.videoHeight
-      );
-      
-      // Force 1:1 aspect ratio
-      video.style.width = '100%';
-      video.style.height = '100%';
-      
-      // Center the video
-      video.style.objectFit = 'cover';
-      video.style.position = 'absolute';
-      video.style.inset = '0';
-      
-      console.log('Video size adjusted:', { containerSize });
+    if (!videoRef.current) return;
+    
+    const video = videoRef.current;
+    if (!video.videoWidth || !video.videoHeight) {
+      requestAnimationFrame(adjustVideoSize);
+      return;
     }
+
+    const isPortrait = window.innerHeight > window.innerWidth;
+    const footerHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--footer-height') || '40px');
+    const padding = Math.max(16, Math.min(window.innerWidth, window.innerHeight) * 0.02); // 2vmin
+
+    // Calculate available space
+    const availableWidth = isPortrait ? window.innerWidth : window.innerWidth / 2;
+    const availableHeight = isPortrait 
+      ? (window.innerHeight - footerHeight) / 2 
+      : window.innerHeight - footerHeight;
+
+    // Calculate maximum size (80% of available space)
+    const maxSize = Math.min(
+      (availableWidth - padding * 2) * 0.8,
+      (availableHeight - padding * 2) * 0.8
+    );
+
+    // Apply size with minimum bound
+    const size = Math.max(320, Math.floor(maxSize));
+    
+    // Update container size
+    const container = video.parentElement;
+    if (container) {
+      container.style.width = `${size}px`;
+      container.style.height = `${size}px`;
+    }
+
+    // Ensure video fills container
+    video.style.width = '100%';
+    video.style.height = '100%';
+    video.style.objectFit = 'cover';
+
+    console.log('Video size adjusted:', {
+      size,
+      availableWidth,
+      availableHeight,
+      isPortrait,
+      padding
+    });
   };
 
   useEffect(() => {
+    // Define a debounce function to limit resize event frequency
+    const debounce = (func: Function, wait: number) => {
+      let timeout: NodeJS.Timeout;
+      return function executedFunction(...args: any[]) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    };
+    
     // Initial sizing
     adjustVideoSize();
     
-    // Listen for resize events
-    window.addEventListener('resize', adjustVideoSize);
+    // Listen for resize events with debounce
+    const handleResize = debounce(() => {
+      adjustVideoSize();
+    }, 150);
+
+    window.addEventListener('resize', handleResize);
     
     // Listen for orientation changes
-    // Add a more robust orientation change listener
     window.addEventListener('orientationchange', () => {
-      // Small delay to ensure the browser has updated dimensions after rotation
-      setTimeout(() => {
-        console.log('Orientation changed, adjusting video size');
-        adjustVideoSize();
-      }, 300); // Slightly longer delay for more reliable orientation change detection
+      // Wait for orientation change to complete
+      setTimeout(adjustVideoSize, 300);
     });
     
-    return () => {
-      window.removeEventListener('resize', adjustVideoSize);
-      window.removeEventListener('orientationchange', () => setTimeout(adjustVideoSize, 300));
-    };
-  }, []);
 
   // Close modal when Escape key is pressed
   useEffect(() => {
@@ -411,7 +441,7 @@ export default function Home() {
   };
   return (
     <>
-      <main className="flex flex-col landscape:flex-row items-center justify-center h-[calc(100vh-var(--footer-height))] overflow-hidden w-full">
+      <main className="fixed inset-0 flex flex-col landscape:flex-row overflow-hidden">
         {error && (
           <div className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded z-10">
             {error}
@@ -419,12 +449,29 @@ export default function Home() {
         )}
 
         {/* Camera Section */}
-        <div className="camera-section w-full max-w-md h-[calc(50vh-var(--section-gap))] landscape:h-[calc(100vh-var(--footer-height))] landscape:w-[calc(50vw-var(--section-gap))] flex items-center justify-center" ref={containerRef}>
-          <div className="relative aspect-square rounded-lg overflow-hidden" 
-               style={{ 
-                 width: 'min(100%, min(calc(50vh - var(--section-gap)), calc(50vw - var(--section-gap))))',
-                 height: 'min(100%, min(calc(50vh - var(--section-gap)), calc(50vw - var(--section-gap))))' 
-               }}>
+        <div 
+          className="fixed portrait:top-0 portrait:left-0 portrait:w-full portrait:h-[50vh] landscape:top-0 landscape:left-0 landscape:w-[50vw] landscape:h-[calc(100vh-var(--footer-height))] bg-white"
+          style={{
+            '--camera-padding': 'max(1rem, min(2vw, 2vh))',
+          } as React.CSSProperties}
+          ref={containerRef}
+        >
+          <div 
+            className="camera-container"
+            style={{
+              position: 'absolute',
+              width: `min(80%, min(calc(50vh - var(--camera-padding) * 2), calc(50vw - var(--camera-padding) * 2)))`,
+              aspectRatio: '1',
+              top: '20%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              backgroundColor: 'rgb(243 244 246)',
+              borderRadius: '0.5rem',
+              overflow: 'hidden',
+              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+              transition: 'all 0.3s ease-in-out',
+            }}
+          >
             <video
               ref={videoRef}
               className="absolute inset-0 w-full h-full object-cover"
@@ -441,41 +488,44 @@ export default function Home() {
         </div>
 
         {/* Buttons Section */}
-        <div className="buttons-section w-full max-w-md h-[calc(50vh-var(--section-gap))] landscape:h-[calc(100vh-var(--footer-height))] landscape:w-[calc(50vw-var(--section-gap))] buttons-container">
-          <div className="flex flex-col justify-center h-full gap-4 px-4">
-          <button
-            onClick={isStreaming ? stopCamera : startCamera}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors"
-          >
-            {isStreaming ? 'Stop Camera' : 'Start Camera'}
-          </button>
-
-          <button
-            onClick={() => {
-              console.log('Take Picture button clicked');
-              takePhoto();
-            }}
-            disabled={!isStreaming}
-            className={`w-full py-2 px-4 rounded transition-colors ${
-              isStreaming
-                ? 'bg-green-500 hover:bg-green-600 text-white'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            Take Picture (Select Camera View)
-          </button>
+        <div className="fixed portrait:bottom-[var(--footer-height)] portrait:left-0 portrait:w-full portrait:h-[50vh] landscape:top-0 landscape:right-0 landscape:w-[50vw] landscape:h-[calc(100vh-var(--footer-height))] bg-white">
+          <div className="flex flex-col justify-center h-full gap-4 p-4">
+            <button
+              onClick={isStreaming ? stopCamera : startCamera}
+              className={`px-4 py-2 rounded-lg text-white font-semibold transition-all ${
+                isStreaming 
+                  ? 'bg-red-500 hover:bg-red-600 active:bg-red-700' 
+                  : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700'
+              }`}
+            >
+              {isStreaming ? 'Stop Camera' : 'Start Camera'}
+            </button>
+            
+            <button
+              onClick={() => {
+                console.log('Take Picture button clicked');
+                takePhoto();
+              }}
+              disabled={!isStreaming}
+              className={`px-4 py-2 rounded-lg text-white font-semibold transition-all ${
+                isStreaming
+                  ? 'bg-green-500 hover:bg-green-600 active:bg-green-700'
+                  : 'bg-gray-300 cursor-not-allowed'
+              }`}
+            >
+              Take Photo
+            </button>
           </div>
         </div>
-      </main>
-      
-      {/* Footer with Policy Links */}
-      <footer className="footer-container text-center text-sm text-gray-600 bg-white py-2">
-        <div className="flex justify-center space-x-4">
-          <Link href="/terms" className="hover:text-blue-500 hover:underline">Terms and Conditions</Link>
-          <Link href="/privacy" className="hover:text-blue-500 hover:underline">Privacy Policy</Link>
-          <Link href="/cookies" className="hover:text-blue-500 hover:underline">Cookie Policy</Link>
-        </div>
-      </footer>
+
+        {/* Footer */}
+        <footer className="fixed bottom-0 left-0 right-0 h-[var(--footer-height)] bg-white border-t border-gray-200 flex items-center justify-center">
+          <div className="flex space-x-4 text-sm text-gray-600">
+            <Link href="/terms" className="hover:text-blue-500 hover:underline">Terms</Link>
+            <Link href="/privacy" className="hover:text-blue-500 hover:underline">Privacy</Link>
+            <Link href="/cookies" className="hover:text-blue-500 hover:underline">Cookies</Link>
+          </div>
+        </footer>
 
       {/* Modal */}
       {showModal && capturedPhotoUrl && (
@@ -578,18 +628,35 @@ export default function Home() {
           height: 100%;
         }
 
-        /* Camera container */
+        /* Camera section styles */
         .camera-section {
+          position: fixed;
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: center;
+          overflow: hidden;
+          background-color: white;
         }
 
-        .relative.aspect-square {
-          position: relative;
-          overflow: hidden;
+        .camera-container {
+          position: absolute;
+          aspect-ratio: 1;
           border-radius: 0.5rem;
-          background-color: rgb(243, 244, 246);
+          overflow: hidden;
+        }
+
+        @media (orientation: portrait) {
+          .camera-section {
+            width: 100vw;
+            height: 50vh;
+          }
+        }
+
+        @media (orientation: landscape) {
+          .camera-section {
+            width: 50vw;
+            height: 100vh;
+          }
         }
 
         /* Video element */
@@ -598,7 +665,6 @@ export default function Home() {
           height: 100%;
           object-fit: cover;
           object-position: center;
-          transition: transform 0.3s ease;
         }
 
         /* Frame overlay */
@@ -608,9 +674,7 @@ export default function Home() {
           object-fit: fill;
           pointer-events: none;
           z-index: 10;
-          transition: opacity 0.3s ease;
         }
-
         .relative:hover img[src*="frame.png"] {
           opacity: 0.95;
         }
