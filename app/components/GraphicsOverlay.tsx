@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-
+import { fabric } from 'fabric';  // Update import statement
 interface GraphicsOverlayProps {
   imageUrl: string;
   onSave: (editedImage: string) => void;
@@ -16,73 +16,123 @@ interface FabricImage {
   set: (options: Record<string, any>) => void;
 }
 
-let fabric: any = null;
-
-const initFabric = async () => {
-  if (!fabric) {
-    const fabricModule = await import('fabric');
-    fabric = fabricModule.default;
-  }
-  return fabric;
-};
 
 export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fabricCanvasRef = useRef<any>(null);
+  const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
-    let mounted = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const loadImage = (canvas: fabric.Canvas, url: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      fabric.Image.fromURL(
+        url,
+        function(img) {
+          if (!mountedRef.current || !canvas) {
+            reject(new Error('Component unmounted'));
+            return;
+          }
+
+          if (!img) {
+            reject(new Error('Failed to load image'));
+            return;
+          }
+
+          console.log('Image loaded with dimensions:', {
+            width: img.width,
+            height: img.height
+          });
+
+          const containerWidth = canvas.width || 800;
+          const containerHeight = canvas.height || 600;
+
+          const scale = Math.min(
+            containerWidth / (img.width || 1),
+            containerHeight / (img.height || 1)
+          );
+
+          console.log('Applying scale:', scale);
+
+          img.scale(scale);
+          img.set({
+            originX: 'center',
+            originY: 'center',
+            left: containerWidth / 2,
+            top: containerHeight / 2,
+            selectable: false,
+            evented: false,
+          });
+
+          canvas.add(img);
+          canvas.renderAll();
+          resolve();
+        },
+        function() {
+          reject(new Error('Failed to load image'));
+        },
+        {
+          crossOrigin: 'anonymous'
+        }
+      );
+    });
+  };
+
+  useEffect(() => {
     
-    const setupCanvas = async () => {
+    const initCanvas = async () => {
       if (!canvasRef.current || fabricCanvasRef.current) return;
       
       try {
-        const fabric = await initFabric();
+        setLoading(true);
+        setError(null);
         
-        if (!mounted) return;
+        console.log('Initializing canvas...');
         
-        fabricCanvasRef.current = new fabric.Canvas(canvasRef.current, {
-          width: 800,
-          height: 600,
-          backgroundColor: '#ffffff',
+        const containerWidth = 800;
+        const containerHeight = 600;
+        
+        // Set initial canvas element size
+        canvasRef.current.width = containerWidth;
+        canvasRef.current.height = containerHeight;
+        
+        const canvas = new fabric.Canvas(canvasRef.current, {
+          width: containerWidth,
+          height: containerHeight,
+          backgroundColor: '#f0f0f0',
+          preserveObjectStacking: true,
         });
         
+        fabricCanvasRef.current = canvas;
+        
         if (imageUrl) {
-          fabric.Image.fromURL(imageUrl, (img: FabricImage) => {
-            if (!mounted || !fabricCanvasRef.current) return;
-
-            const scale = Math.min(
-              fabricCanvasRef.current.width / (img.width || 1),
-              fabricCanvasRef.current.height / (img.height || 1)
-            );
-            
-            img.scale(scale);
-            img.set({
-              originX: 'center',
-              originY: 'center',
-              left: fabricCanvasRef.current.width / 2,
-              top: fabricCanvasRef.current.height / 2,
-              selectable: false,
-              evented: false,
-            });
-
-            fabricCanvasRef.current.add(img);
-            fabricCanvasRef.current.renderAll();
-          });
+          console.log('Loading image:', imageUrl.substring(0, 50) + '...');
+          await loadImage(canvas, imageUrl);
+        } else {
+          throw new Error('No image URL provided');
         }
         
-        setLoading(false);
+        if (mountedRef.current) {
+          setLoading(false);
+        }
       } catch (error) {
-        console.error('Error initializing Fabric.js:', error);
-        setLoading(false);
+        console.error('Error in canvas setup:', error);
+        if (mountedRef.current) {
+          setError(error instanceof Error ? error.message : 'Failed to initialize editor');
+          setLoading(false);
+        }
       }
     };
     
-    setupCanvas();
+    initCanvas();
     
     return () => {
-      mounted = false;
       if (fabricCanvasRef.current) {
         fabricCanvasRef.current.dispose();
         fabricCanvasRef.current = null;
@@ -90,10 +140,8 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
     };
   }, [imageUrl]);
 
-  const addText = async () => {
+  const addText = () => {
     if (!fabricCanvasRef.current) return;
-
-    const fabric = await initFabric();
     const text = new fabric.IText('Double click to edit', {
       left: 100,
       top: 100,
@@ -107,10 +155,8 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
     fabricCanvasRef.current.renderAll();
   };
 
-  const addSticker = async (emoji: string) => {
+  const addSticker = (emoji: string) => {
     if (!fabricCanvasRef.current) return;
-
-    const fabric = await initFabric();
     const text = new fabric.Text(emoji, {
       left: 150,
       top: 150,
@@ -151,15 +197,45 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
         </div>
         
         <div className="flex gap-4">
-          <div className="flex-1">
-            {loading && <div className="text-center py-4">Loading editor...</div>}
-            <canvas ref={canvasRef} className="border border-gray-300 rounded-lg" />
+          <div className="flex-1 relative">
+            {loading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-80 rounded-lg z-10">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                  <p className="text-gray-600">Loading editor...</p>
+                </div>
+              </div>
+            )}
+            {error && (
+              <div className="absolute inset-0 flex items-center justify-center bg-red-50 rounded-lg z-10">
+                <div className="text-center p-4">
+                  <p className="text-red-600 mb-2">{error}</p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                  >
+                    Retry
+                  </button>
+                </div>
+              </div>
+            )}
+            <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden">
+              <canvas 
+                ref={canvasRef} 
+                className="max-w-full max-h-full object-contain" 
+                style={{
+                  width: '800px',
+                  height: '600px',
+                }}
+              />
+            </div>
           </div>
           
           <div className="w-48 space-y-4">
             <button
               onClick={addText}
-              className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || !!error}
             >
               Add Text
             </button>
@@ -171,7 +247,8 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
                   <button
                     key={emoji}
                     onClick={() => addSticker(emoji)}
-                    className="p-2 text-2xl bg-gray-100 rounded hover:bg-gray-200"
+                    className="p-2 text-2xl bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={loading || !!error}
                   >
                     {emoji}
                   </button>
@@ -181,7 +258,8 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
             
             <button
               onClick={handleSave}
-              className="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+              className="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || !!error}
             >
               Save
             </button>

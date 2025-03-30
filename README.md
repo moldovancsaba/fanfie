@@ -16,6 +16,14 @@ Fanfie is a modern web application that allows users to capture photos from thei
 - Interactive canvas for intuitive editing
 - Drag and drop positioning of all elements
 
+### 📸 Photo Editing Features
+- Reliable photo capture from camera
+- Real-time photo editing with Fabric.js
+- Text and sticker additions
+- Image validation and error handling
+- Cross-origin image support
+- Smooth editing experience
+
 ### 🔗 Sharing Options
 - Direct sharing via Web Share API (where supported)
 - Social media platform integration
@@ -78,14 +86,18 @@ Fanfie works best in modern browsers with the following requirements:
 3. Click/tap the capture button
 
 ### Editing Your Photo
-1. Add text by using the text tool in the toolbar
-2. Customize text with font options
-3. Drag elements to position them
-4. Use the layer controls to arrange elements
+1. Allow camera access when prompted
+2. Position yourself and click "Take Photo"
+3. The captured photo will automatically open in the editor
+4. Add text by clicking the "Add Text" button
+5. Add stickers from the sticker palette
+6. Drag elements to position them
+7. Resize and rotate elements as needed
 
 ### Sharing Your Creation
-1. Click/tap the "Share" button
-2. Choose your preferred sharing method:
+1. Click "Save" when satisfied with your edits
+2. Share your creation through the share interface
+3. Choose your preferred sharing method:
    - Direct share (mobile)
    - Social media platforms
    - Download as image

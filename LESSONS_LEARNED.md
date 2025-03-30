@@ -1,3 +1,35 @@
+## Image Editing and Canvas Handling
+
+### Issue: Photos Not Appearing in Editor
+We encountered an issue where captured photos weren't appearing in the editing view. This led to several important learnings:
+
+1. **Fabric.js Initialization**
+   - Always ensure proper import of Fabric.js (use `import { fabric } from 'fabric'` instead of default import)
+   - Initialize canvas with explicit dimensions before loading images
+   - Handle canvas cleanup properly on component unmount
+
+2. **Image Validation**
+   - Validate image dimensions before processing
+   - Check image data format and integrity
+   - Test image loading before passing to editor
+   - Add proper error handling and user feedback
+
+3. **Component State Management**
+   - Track component mount state to prevent memory leaks
+   - Handle async operations safely with mount checks
+   - Properly clean up resources (canvas, image data)
+
+4. **Cross-Origin Considerations**
+   - Add crossOrigin handling for image loading
+   - Use proper image data formats (JPEG/PNG)
+   - Handle image loading errors gracefully
+
+### Future Safeguards
+- Always test image capture and editing flow thoroughly
+- Implement comprehensive error handling
+- Add debug logging for image processing steps
+- Consider implementing image format and size validation early in the process
+
 # Lessons Learned
 
 ## Google Analytics Implementation (2025-03-30)

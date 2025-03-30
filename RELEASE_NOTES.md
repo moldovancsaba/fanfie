@@ -6,12 +6,21 @@
 - Implemented Next.js Script component mocking strategy
 - Enhanced test coverage for Google Analytics integration
 
-Technical Notes:
+### Fixed
+- Fixed issue where photos weren't appearing in the editing view after capture
+- Improved image handling in GraphicsOverlay component
+- Enhanced error handling and validation in CameraComponent
+- Added better state management for canvas initialization
+
+### Technical Notes
 - Created custom mock for Next.js Script component
 - Added tests for script loading configuration and tracking ID
 - Improved test reliability and execution speed
 - No changes to production analytics behavior
-
+- Updated Fabric.js integration with proper import and initialization
+- Added image validation before passing to editor
+- Implemented proper canvas cleanup and memory management
+- Added crossOrigin support for image loading
 ## v1.1.1 (2025-03-30)
 
 ### Feature: Google Analytics Integration

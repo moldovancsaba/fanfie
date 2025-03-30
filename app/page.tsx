@@ -9,10 +9,16 @@ export default function Home() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [editedImage, setEditedImage] = useState<string | null>(null);
   const handleCapture = (imageData: string) => {
+    console.log('Image captured:', !!imageData); // Debug log
+    if (!imageData.startsWith('data:image')) {
+      console.error('Invalid image data received');
+      return;
+    }
     setCapturedImage(imageData);
   };
 
   const handleSave = (editedImage: string) => {
+    console.log('Image edited:', !!editedImage); // Debug log
     setEditedImage(editedImage);
   };
 
@@ -37,11 +43,14 @@ export default function Home() {
               onClose={handleClose}
             />
           ) : capturedImage ? (
-            <GraphicsOverlay 
-              imageUrl={capturedImage} 
-              onSave={handleSave}
-              onClose={() => setCapturedImage(null)}
-            />
+            <>
+              {console.log('Rendering GraphicsOverlay with image')} {/* Debug log */}
+              <GraphicsOverlay 
+                imageUrl={capturedImage} 
+                onSave={handleSave}
+                onClose={() => setCapturedImage(null)}
+              />
+            </>
           ) : (
             <CameraComponent onCapture={handleCapture} />
           )}

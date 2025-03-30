@@ -85,24 +85,83 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ onCapture }) => {
     };
   }, []);
 
+  const validateImageDimensions = (width: number, height: number) => {
+    const MIN_DIMENSION = 100;
+    const MAX_DIMENSION = 4096;
+    return width >= MIN_DIMENSION && 
+           height >= MIN_DIMENSION && 
+           width <= MAX_DIMENSION && 
+           height <= MAX_DIMENSION;
+  };
+
   const capturePhoto = () => {
-    if (videoRef.current && canvasRef.current && status === 'streaming') {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      
-      // Set canvas dimensions to match the video stream
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      
-      // Draw the current video frame to the canvas
-      const context = canvas.getContext('2d');
-      if (context) {
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        // Convert the canvas content to a data URL and pass it to the parent component
-        const imageData = canvas.toDataURL('image/jpeg');
-        onCapture(imageData);
+    if (!videoRef.current || !canvasRef.current || status !== 'streaming') {
+      console.error('Cannot capture photo:', {
+        hasVideo: !!videoRef.current,
+        hasCanvas: !!canvasRef.current,
+        status
+      });
+      setErrorMessage('Cannot capture photo. Please reload the page.');
+      setStatus('error');
+      return;
+    }
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+
+    try {
+      // Validate video dimensions
+      const videoWidth = video.videoWidth;
+      const videoHeight = video.videoHeight;
+
+      console.log('Video dimensions:', { videoWidth, videoHeight });
+
+      if (!validateImageDimensions(videoWidth, videoHeight)) {
+        throw new Error('Invalid video dimensions');
       }
+
+      // Set canvas dimensions
+      canvas.width = videoWidth;
+      canvas.height = videoHeight;
+
+      // Get and validate canvas context
+      const context = canvas.getContext('2d');
+      if (!context) {
+        throw new Error('Could not get canvas context');
+      }
+
+      // Clear canvas and draw new frame
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Get image data and validate
+      const imageData = canvas.toDataURL('image/jpeg', 0.95);
+      
+      if (!imageData || imageData.length < 100 || !imageData.startsWith('data:image/jpeg')) {
+        throw new Error('Invalid image data generated');
+      }
+
+      console.log('Photo captured successfully:', {
+        width: canvas.width,
+        height: canvas.height,
+        dataLength: imageData.length
+      });
+
+      // Create a test image to verify the data
+      const testImage = new Image();
+      testImage.onload = () => {
+        // Image loads successfully, we can pass it to parent
+        onCapture(imageData);
+      };
+      testImage.onerror = () => {
+        throw new Error('Generated image data is invalid');
+      };
+      testImage.src = imageData;
+
+    } catch (error) {
+      console.error('Error in photo capture:', error);
+      setErrorMessage('Failed to capture photo. Please try again.');
+      setStatus('error');
     }
   };
 
