@@ -21,6 +21,20 @@
      - Proper script tag presence
    - Focus on structural testing as runtime behavior is handled by Google's script
 
+4. **Test Mocking Strategy**
+   - Created custom mock for Next.js Script component to enable proper testing
+   - Mock implementation preserves key props and behavior
+   - Ensures tests can verify:
+     - Script loading configuration
+     - Google Analytics ID integration
+     - Initialization code presence
+   - Benefits:
+     - More reliable tests without actual script loading
+     - Faster test execution
+     - Consistent behavior across test environments
+
+This approach allows for comprehensive testing of the Analytics implementation without depending on the actual Next.js Script component or Google Analytics loading.
+
 ### Considerations for Future Updates
 
 1. When adding custom event tracking:

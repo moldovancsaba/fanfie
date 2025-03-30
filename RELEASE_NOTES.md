@@ -1,3 +1,17 @@
+## v1.1.2 (2025-03-30)
+
+### Enhancement: Improved Analytics Testing
+
+- Added comprehensive test suite for Analytics component
+- Implemented Next.js Script component mocking strategy
+- Enhanced test coverage for Google Analytics integration
+
+Technical Notes:
+- Created custom mock for Next.js Script component
+- Added tests for script loading configuration and tracking ID
+- Improved test reliability and execution speed
+- No changes to production analytics behavior
+
 ## v1.1.1 (2025-03-30)
 
 ### Feature: Google Analytics Integration
