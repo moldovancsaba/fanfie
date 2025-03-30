@@ -2,24 +2,55 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { fabric } from 'fabric';  // Update import statement
+
+interface FabricCanvas {
+    width?: number;
+    height?: number;
+    add(object: any): FabricCanvas;
+    renderAll(): void;
+    setActiveObject(object: any): boolean;
+    dispose(): void;
+    toDataURL(options?: { format?: string; quality?: number; multiplier?: number }): string;
+}
+
+interface FabricImage {
+    width?: number;
+    height?: number;
+    scale(value: number): void;
+    set(options: Record<string, any>): void;
+}
+
+interface FabricIText {
+    set(options: Record<string, any>): void;
+}
+
+interface FabricText {
+    set(options: Record<string, any>): void;
+}
+
+declare const fabric: {
+    Canvas: new (element: HTMLCanvasElement, options?: {
+        width?: number;
+        height?: number;
+        backgroundColor?: string;
+        [key: string]: any;
+    }) => FabricCanvas;
+    Image: {
+        fromURL(url: string, callback: (img: FabricImage) => void, error?: (err: Error) => void, options?: { crossOrigin?: string }): void;
+    };
+    IText: new(text: string, options?: Record<string, any>) => FabricIText;
+    Text: new(text: string, options?: Record<string, any>) => FabricText;
+};
 interface GraphicsOverlayProps {
   imageUrl: string;
   onSave: (editedImage: string) => void;
   onClose: () => void;
 }
 
-interface FabricImage {
-  width?: number;
-  height?: number;
-  scale: (value: number) => void;
-  set: (options: Record<string, any>) => void;
-}
-
 
 export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
+  const fabricCanvasRef = useRef<FabricCanvas | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const mountedRef = useRef(true);
@@ -30,7 +61,7 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
     };
   }, []);
 
-  const loadImage = (canvas: fabric.Canvas, url: string): Promise<void> => {
+  const loadImage = (canvas: FabricCanvas, url: string): Promise<void> => {
     return new Promise((resolve, reject) => {
       fabric.Image.fromURL(
         url,
