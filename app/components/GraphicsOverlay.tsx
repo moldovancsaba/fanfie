@@ -28,19 +28,6 @@ interface FabricText {
     set(options: Record<string, any>): void;
 }
 
-declare const fabric: {
-    Canvas: new (element: HTMLCanvasElement, options?: {
-        width?: number;
-        height?: number;
-        backgroundColor?: string;
-        [key: string]: any;
-    }) => FabricCanvas;
-    Image: {
-        fromURL(url: string, callback: (img: FabricImage) => void, error?: (err: Error) => void, options?: { crossOrigin?: string }): void;
-    };
-    IText: new(text: string, options?: Record<string, any>) => FabricIText;
-    Text: new(text: string, options?: Record<string, any>) => FabricText;
-};
 interface GraphicsOverlayProps {
   imageUrl: string;
   onSave: (editedImage: string) => void;
@@ -61,9 +48,18 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
     };
   }, []);
 
-  const loadImage = (canvas: FabricCanvas, url: string): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      fabric.Image.fromURL(
+  const loadImage = async (canvas: FabricCanvas, url: string): Promise<void> => {
+    try {
+      // Dynamically import fabric.js for image loading
+      const fabricModule = await import('fabric');
+      const fabric = fabricModule.fabric;
+      
+      if (!fabric) {
+        throw new Error('Failed to load fabric.js library');
+      }
+      
+      return new Promise((resolve, reject) => {
+        fabric.Image.fromURL(
         url,
         function(img) {
           if (!mountedRef.current || !canvas) {
@@ -111,8 +107,12 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
         {
           crossOrigin: 'anonymous'
         }
-      );
-    });
+        );
+      });
+    } catch (error) {
+      console.error('Error loading image:', error);
+      throw new Error('Failed to load image: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
   };
 
   useEffect(() => {
@@ -125,6 +125,16 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
         setError(null);
         
         console.log('Initializing canvas...');
+        
+        // Dynamically import fabric.js
+        const fabricModule = await import('fabric');
+        const fabric = fabricModule.fabric;
+        
+        if (!fabric) {
+          throw new Error('Failed to load fabric.js library');
+        }
+        
+        console.log('Fabric.js loaded successfully');
         
         const containerWidth = 800;
         const containerHeight = 600;
@@ -171,36 +181,64 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
     };
   }, [imageUrl]);
 
-  const addText = () => {
+  const addText = async () => {
     if (!fabricCanvasRef.current) return;
-    const text = new fabric.IText('Double click to edit', {
+    
+    try {
+      // Dynamically import fabric.js for text
+      const fabricModule = await import('fabric');
+      const fabric = fabricModule.fabric;
+      
+      if (!fabric) {
+        throw new Error('Failed to load fabric.js library');
+      }
+      
+      const text = new fabric.IText('Double click to edit', {
       left: 100,
       top: 100,
       fontSize: 20,
       fill: '#000000',
       fontFamily: 'Arial'
     });
-    
-    fabricCanvasRef.current.add(text);
-    fabricCanvasRef.current.setActiveObject(text);
-    fabricCanvasRef.current.renderAll();
+      });
+      
+      fabricCanvasRef.current.add(text);
+      fabricCanvasRef.current.setActiveObject(text);
+      fabricCanvasRef.current.renderAll();
+    } catch (error) {
+      console.error('Error adding text:', error);
+      setError('Failed to add text. Please try again.');
+    }
   };
-
-  const addSticker = (emoji: string) => {
+  const addSticker = async (emoji: string) => {
     if (!fabricCanvasRef.current) return;
-    const text = new fabric.Text(emoji, {
+    
+    try {
+      // Dynamically import fabric.js for sticker
+      const fabricModule = await import('fabric');
+      const fabric = fabricModule.fabric;
+      
+      if (!fabric) {
+        throw new Error('Failed to load fabric.js library');
+      }
+      
+      const text = new fabric.Text(emoji, {
       left: 150,
       top: 150,
       fontSize: 40,
       selectable: true,
       hasControls: true
     });
-    
-    fabricCanvasRef.current.add(text);
-    fabricCanvasRef.current.setActiveObject(text);
-    fabricCanvasRef.current.renderAll();
+      });
+      
+      fabricCanvasRef.current.add(text);
+      fabricCanvasRef.current.setActiveObject(text);
+      fabricCanvasRef.current.renderAll();
+    } catch (error) {
+      console.error('Error adding sticker:', error);
+      setError('Failed to add sticker. Please try again.');
+    }
   };
-
   const handleSave = () => {
     if (fabricCanvasRef.current) {
       const dataUrl = fabricCanvasRef.current.toDataURL({
