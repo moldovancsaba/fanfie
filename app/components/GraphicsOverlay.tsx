@@ -200,7 +200,6 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
       fill: '#000000',
       fontFamily: 'Arial'
     });
-      });
       
       fabricCanvasRef.current.add(text);
       fabricCanvasRef.current.setActiveObject(text);
@@ -229,7 +228,6 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
       selectable: true,
       hasControls: true
     });
-      });
       
       fabricCanvasRef.current.add(text);
       fabricCanvasRef.current.setActiveObject(text);
