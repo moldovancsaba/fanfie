@@ -169,3 +169,156 @@ The implementation follows a clear separation of concerns with independent compo
 
 The three-stage workflow (capture → edit → share) creates a natural user journey while keeping the codebase organized around distinct responsibilities. This pattern can be extended to include additional stages or features without disrupting the existing implementation.
 
+## Share Component Architecture
+
+### Component Structure
+The sharing functionality is built using a modal-based approach with multiple sharing options:
+
+```tsx
+interface ShareComponentProps {
+  imageUrl: string;
+  onClose: () => void;
+  title?: string;
+  description?: string;
+}
+```
+
+### Design Decisions
+
+1. **Modal Approach**
+   - Full-screen modal with dark overlay
+   - Centered content with max-width
+   - Responsive design for all screen sizes
+   - Keeps user focused on sharing task
+
+2. **Share Options Hierarchy**
+   - Native Share API (primary when available)
+   - Social Media Quick Links
+   - Download Options (PNG/JPEG)
+   - Copy Link Fallback
+
+3. **State Management**
+   ```typescript
+   const [loading, setLoading] = useState(false);
+   const [canShare, setCanShare] = useState(false);
+   ```
+   - Minimal state usage
+   - Loading states for feedback
+   - Feature detection state
+
+4. **Error Handling Strategy**
+   - Toast notifications for user feedback
+   - Graceful fallbacks for all features
+   - Clear error messages
+   - Proper error logging
+
+5. **Integration with Main Flow**
+   ```tsx
+   {editedImage ? (
+     <ShareComponent 
+       imageUrl={editedImage}
+       onClose={handleClose}
+     />
+   ) : (
+     <GraphicsOverlay ... />
+   )}
+   ```
+   - Clean integration with edit flow
+   - Clear state transitions
+   - Proper cleanup on close
+
+### Technical Considerations
+
+1. **Server-Side Rendering**
+   - Avoid hydration mismatches
+   - Feature detection in useEffect
+   - Conservative initial states
+
+2. **Image Handling**
+   - Proper image type conversion
+   - Efficient blob handling
+   - Memory cleanup
+
+3. **Social Media Integration**
+   - Platform-specific URLs
+   - Proper URL encoding
+   - Customizable share text
+
+4. **Browser Support**
+   - Feature detection
+   - Fallback mechanisms
+   - Progressive enhancement
+
+### Future Improvements
+
+1. **Additional Platforms**
+   - LinkedIn Integration
+   - WhatsApp Sharing
+   - Email Sharing
+
+2. **Enhanced Features**
+   - Image optimization
+   - Custom share previews
+   - Analytics tracking
+
+3. **Performance Optimization**
+   - Lazy loading of social icons
+   - Image format optimization
+   - Caching strategies
+
+### Integration Patterns
+
+1. **Component Communication**
+   ```typescript
+   // Parent to ShareComponent
+   onClose: () => void;
+   // ShareComponent to External
+   handleSocialShare: (platform: SharePlatform) => void;
+   ```
+
+2. **State Management**
+   - Local state for UI
+   - Props for data flow
+   - Callbacks for events
+
+3. **Error Boundaries**
+   - Toast notifications
+   - Error logging
+   - User feedback
+
+### Testing Considerations
+
+1. **Unit Tests**
+   - Platform detection
+   - Share handling
+   - Error cases
+
+2. **Integration Tests**
+   - Modal behavior
+   - Share flow
+   - Platform integration
+
+3. **Browser Testing**
+   - Cross-browser functionality
+   - Mobile responsiveness
+   - Feature detection
+
+## Analytics Implementation
+
+### Google Analytics Integration
+
+- Google Analytics 4 tracking is implemented site-wide
+- Tracking ID: G-02YS3TDP5T
+- Analytics component (components/Analytics.tsx) handles script loading and initialization
+- Analytics is loaded using Next.js Script component with 'afterInteractive' strategy
+- Tests are in place to verify component rendering and tracking ID
+
+### Current tracking capabilities:
+
+- Page views
+- Default GA4 events (session start, first visit)
+
+### Future considerations:
+
+- Custom event tracking for specific user interactions
+- Conversion tracking for key user actions
