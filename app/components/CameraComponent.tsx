@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import GraphicsOverlay from './GraphicsOverlay';
+import ShareComponent from './ShareComponent';
 
 export default function CameraComponent() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -9,6 +10,7 @@ export default function CameraComponent() {
   const [hasPermission, setHasPermission] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [editedImage, setEditedImage] = useState<string | null>(null);
 
   useEffect(() => {
     async function setupCamera() {
@@ -50,13 +52,21 @@ export default function CameraComponent() {
     }
   };
 
-  const handleSave = async (dataUrl: string) => {
-    // TODO: Implement sharing functionality
-    console.log('Saving image:', dataUrl);
+  const handleSave = (dataUrl: string) => {
+    setEditedImage(dataUrl);
+  };
+
+  const resetAll = () => {
+    setCapturedImage(null);
+    setEditedImage(null);
   };
 
   if (error) {
     return <div className="text-red-500">{error}</div>;
+  }
+
+  if (editedImage) {
+    return <ShareComponent imageUrl={editedImage} onClose={resetAll} />;
   }
 
   return (
