@@ -51,8 +51,7 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
   const loadImage = async (canvas: FabricCanvas, url: string): Promise<void> => {
     try {
       // Dynamically import fabric.js for image loading
-      const fabricModule = await import('fabric');
-      const fabric = fabricModule.fabric;
+      const { default: fabric } = await import('fabric');
       
       if (!fabric) {
         throw new Error('Failed to load fabric.js library');
@@ -127,8 +126,7 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
         console.log('Initializing canvas...');
         
         // Dynamically import fabric.js
-        const fabricModule = await import('fabric');
-        const fabric = fabricModule.fabric;
+        const { default: fabric } = await import('fabric');
         
         if (!fabric) {
           throw new Error('Failed to load fabric.js library');
@@ -186,8 +184,7 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
     
     try {
       // Dynamically import fabric.js for text
-      const fabricModule = await import('fabric');
-      const fabric = fabricModule.fabric;
+      const { default: fabric } = await import('fabric');
       
       if (!fabric) {
         throw new Error('Failed to load fabric.js library');
@@ -214,8 +211,7 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
     
     try {
       // Dynamically import fabric.js for sticker
-      const fabricModule = await import('fabric');
-      const fabric = fabricModule.fabric;
+      const { default: fabric } = await import('fabric');
       
       if (!fabric) {
         throw new Error('Failed to load fabric.js library');
