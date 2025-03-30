@@ -60,7 +60,7 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
       return new Promise((resolve, reject) => {
         fabric.Image.fromURL(
         url,
-        function(img) {
+        function(img: FabricImage) {
           if (!mountedRef.current || !canvas) {
             reject(new Error('Component unmounted'));
             return;
