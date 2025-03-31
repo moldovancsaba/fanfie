@@ -12,14 +12,6 @@ interface FabricCanvas {
     dispose(): void;
     toDataURL(options?: { format?: string; quality?: number; multiplier?: number }): string;
 }
-
-interface FabricImage {
-    width?: number;
-    height?: number;
-    scale(value: number): void;
-    set(options: Record<string, any>): void;
-}
-
 type FabricImageObject = {
     width?: number;
     height?: number;
