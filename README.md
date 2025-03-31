@@ -1,5 +1,15 @@
 # Fanfie - Camera & Graphics Editor Web App
 
+CONNECTED DOCUMENTS - always update and use!
+01_roadmap.MD
+02_development.MD
+03_lessonslearned.MD
+04_releasenotes.md
+05_50FirstDates.MD
+
+
+
+
 Fanfie is a modern web application that allows users to capture photos from their device camera, enhance them with text and graphics, and share them across multiple platforms. Built with Next.js and modern web technologies, Fanfie delivers a seamless, responsive user experience across devices.
 
 ## Features

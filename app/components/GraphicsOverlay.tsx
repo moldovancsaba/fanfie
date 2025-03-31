@@ -2,24 +2,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-
-interface FabricCanvas {
-    width?: number;
-    height?: number;
-    add(object: any): FabricCanvas;
-    renderAll(): void;
-    setActiveObject(object: any): boolean;
-    dispose(): void;
-    toDataURL(options?: { format?: string; quality?: number; multiplier?: number }): string;
-}
-
-interface FabricIText {
-    set(options: Record<string, any>): void;
-}
-
-interface FabricText {
-    set(options: Record<string, any>): void;
-}
+import { CanvasService } from '../services/CanvasService';
 
 interface GraphicsOverlayProps {
   imageUrl: string;
@@ -30,7 +13,7 @@ interface GraphicsOverlayProps {
 
 export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fabricCanvasRef = useRef<FabricCanvas | null>(null);
+  const [canvasService, setCanvasService] = useState<CanvasService | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const mountedRef = useRef(true);
@@ -41,72 +24,9 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
     };
   }, []);
 
-  const loadImage = async (canvas: FabricCanvas, url: string): Promise<void> => {
-    try {
-      const { default: fabric } = await import('fabric');
-      
-      if (!fabric) {
-        throw new Error('Failed to load fabric.js library');
-      }
-      
-      return new Promise((resolve, reject) => {
-        fabric.Image.fromURL(
-          url,
-          function(img) {
-            if (!mountedRef.current || !canvas) {
-              reject(new Error('Component unmounted'));
-              return;
-            }
-
-            if (!img) {
-              reject(new Error('Failed to load image'));
-              return;
-            }
-
-            console.log('Image loaded with dimensions:', {
-              width: img.width,
-              height: img.height
-            });
-
-            const containerWidth = canvas.width || 800;
-            const containerHeight = canvas.height || 600;
-
-            const scale = Math.min(
-              containerWidth / (img.width || 1),
-              containerHeight / (img.height || 1)
-            );
-
-            console.log('Applying scale:', scale);
-
-            img.scale(scale);
-            img.set({
-              originX: 'center',
-              originY: 'center',
-              left: containerWidth / 2,
-              top: containerHeight / 2,
-              selectable: false,
-              evented: false,
-            });
-
-            canvas.add(img);
-            canvas.renderAll();
-            resolve();
-          },
-          {
-            crossOrigin: 'anonymous'
-          }
-        );
-      });
-    } catch (error) {
-      console.error('Error loading image:', error);
-      throw new Error('Failed to load image: ' + (error instanceof Error ? error.message : 'Unknown error'));
-    }
-  };
-
   useEffect(() => {
-    
     const initCanvas = async () => {
-      if (!canvasRef.current || fabricCanvasRef.current) return;
+      if (!canvasRef.current || canvasService) return;
       
       try {
         setLoading(true);
@@ -114,34 +34,18 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
         
         console.log('Initializing canvas...');
         
-        // Dynamically import fabric.js
-        const { default: fabric } = await import('fabric');
-        
-        if (!fabric) {
-          throw new Error('Failed to load fabric.js library');
-        }
-        
-        console.log('Fabric.js loaded successfully');
-        
-        const containerWidth = 800;
-        const containerHeight = 600;
-        
-        // Set initial canvas element size
-        canvasRef.current.width = containerWidth;
-        canvasRef.current.height = containerHeight;
-        
-        const canvas = new fabric.Canvas(canvasRef.current, {
-          width: containerWidth,
-          height: containerHeight,
-          backgroundColor: '#f0f0f0',
-          preserveObjectStacking: true,
+        const service = new CanvasService(mountedRef);
+        await service.initialize(canvasRef.current, {
+          width: 800,
+          height: 600,
+          backgroundColor: '#f0f0f0'
         });
         
-        fabricCanvasRef.current = canvas;
+        setCanvasService(service);
         
         if (imageUrl) {
           console.log('Loading image:', imageUrl.substring(0, 50) + '...');
-          await loadImage(canvas, imageUrl);
+          await service.loadImage(imageUrl);
         } else {
           throw new Error('No image URL provided');
         }
@@ -161,70 +65,50 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
     initCanvas();
     
     return () => {
-      if (fabricCanvasRef.current) {
-        fabricCanvasRef.current.dispose();
-        fabricCanvasRef.current = null;
+      if (canvasService) {
+        canvasService.cleanup();
       }
     };
-  }, [imageUrl]);
+  }, [imageUrl, canvasService]);
 
   const addText = async () => {
-    if (!fabricCanvasRef.current) return;
+    if (!canvasService) return;
     
     try {
-      // Dynamically import fabric.js for text
-      const { default: fabric } = await import('fabric');
-      
-      if (!fabric) {
-        throw new Error('Failed to load fabric.js library');
-      }
-      
-      const text: FabricIText = new fabric.IText('Double click to edit', {
+      canvasService.addText('Double click to edit', {
         left: 100,
         top: 100,
         fontSize: 20,
         fill: '#000000',
         fontFamily: 'Arial'
       });
-      
-      fabricCanvasRef.current.add(text);
-      fabricCanvasRef.current.setActiveObject(text);
-      fabricCanvasRef.current.renderAll();
     } catch (error) {
       console.error('Error adding text:', error);
       setError('Failed to add text. Please try again.');
     }
   };
+
   const addSticker = async (emoji: string) => {
-    if (!fabricCanvasRef.current) return;
+    if (!canvasService) return;
     
     try {
-      // Dynamically import fabric.js for sticker
-      const { default: fabric } = await import('fabric');
-      
-      if (!fabric) {
-        throw new Error('Failed to load fabric.js library');
-      }
-      
-      const text: FabricText = new fabric.Text(emoji, {
+      canvasService.addText(emoji, {
         left: 150,
         top: 150,
         fontSize: 40,
         selectable: true,
         hasControls: true
       });
-      
-      fabricCanvasRef.current.add(text);
-      fabricCanvasRef.current.setActiveObject(text);
-      fabricCanvasRef.current.renderAll();
     } catch (error) {
       console.error('Error adding sticker:', error);
       setError('Failed to add sticker. Please try again.');
     }
   };
+
   const handleSave = () => {
-    if (fabricCanvasRef.current) {
-      const dataUrl = fabricCanvasRef.current.toDataURL({
+    const canvas = canvasService?.getCanvas();
+    if (canvas) {
+      const dataUrl = canvas.toDataURL({
         format: 'png',
         quality: 1,
         multiplier: 1

@@ -1,4 +1,129 @@
+## v1.1.3 (2025-03-31)
+
+### Technical Investigation: Fabric.js Integration
+
+After encountering multiple type-system challenges with Fabric.js integration, we conducted a thorough investigation and made several key decisions:
+
+- Resolved immediate type issues with the correct Image.fromURL pattern
+- Documented all Fabric.js integration challenges
+- Established a two-phase approach for canvas handling:
+  1. Short term: Optimize current Fabric.js implementation
+  2. Medium term: Evaluate Konva.js as potential alternative
+
+### Fixed
+- Resolved TypeScript errors in GraphicsOverlay component
+- Fixed image loading type assertions
+- Improved error handling in canvas operations
+- Standardized Fabric.js initialization pattern
+
+### Technical Notes
+- Implemented proper type handling for Fabric.js integration
+- Added documentation for type workarounds
+- Created foundation for future canvas service abstraction
+- Improved error handling and resource cleanup
+
 # Fanfie - Release Notes
+
+## v1.1.2 (2025-03-30)
+
+### Enhancement: Improved Analytics Testing
+
+- Added comprehensive test suite for Analytics component
+- Implemented Next.js Script component mocking strategy
+- Enhanced test coverage for Google Analytics integration
+
+### Fixed
+- Fixed issue where photos weren't appearing in the editing view after capture
+- Improved image handling in GraphicsOverlay component
+- Enhanced error handling and validation in CameraComponent
+- Added better state management for canvas initialization
+
+### Technical Notes
+- Created custom mock for Next.js Script component
+- Added tests for script loading configuration and tracking ID
+- Improved test reliability and execution speed
+- No changes to production analytics behavior
+- Updated Fabric.js integration with proper import and initialization
+- Added image validation before passing to editor
+- Implemented proper canvas cleanup and memory management
+- Added crossOrigin support for image loading
+## v1.1.1 (2025-03-30)
+
+### Feature: Google Analytics Integration
+
+- Added Google Analytics 4 tracking with tag ID G-02YS3TDP5T
+- Implemented analytics script loading using Next.js Script component
+- Added analytics initialization in root layout for site-wide tracking
+- Added automated tests for analytics component
+
+Technical Notes:
+- Uses 'afterInteractive' loading strategy for optimal performance
+- Analytics component is client-side rendered
+- Tracking is implemented site-wide through root layout integration
+
+## v1.0.1 - Enhanced Sharing Features (March 30, 2024)
+
+### Summary
+Added comprehensive sharing capabilities to the application, including native Web Share API support, social media integrations, and multiple export options.
+
+### Features Added
+- **Native Sharing** (Web Share API)
+  - Direct sharing to system-level sharing options
+  - File sharing support for supported browsers
+  - Graceful fallback for unsupported browsers
+
+- **Social Media Integration**
+  - Twitter sharing with customizable text and hashtags
+  - Facebook sharing support
+  - Instagram sharing guidance
+  - Pre-configured sharing templates
+
+- **Export Options**
+  - PNG export with original quality
+  - JPEG export option
+  - Custom file naming with timestamps
+
+- **Additional Features**
+  - Copy to clipboard functionality
+  - Toast notifications for user feedback
+  - Loading states for all operations
+  - Error handling with user-friendly messages
+
+### Technical Implementation
+- Implemented dynamic Web Share API detection
+- Added file blob handling for image sharing
+- Integrated react-hot-toast for notifications
+- Added responsive modal design for share interface
+- Implemented URL encoding for social media sharing
+
+### Browser Compatibility
+- Full support in browsers with Web Share API
+- Fallback sharing options for older browsers
+- Progressive enhancement pattern used
+- Tested across major browsers:
+  - Chrome (desktop & mobile)
+  - Safari (iOS)
+  - Firefox
+  - Edge
+
+### Known Limitations
+- Web Share API only available in secure contexts (HTTPS)
+- File sharing not supported in all browsers
+- Instagram sharing requires manual upload due to API limitations
+
+### User Experience Improvements
+- Clear success/error feedback
+- Disabled states during operations
+- Multiple sharing options always available
+- User-friendly error messages
+
+### Future Considerations
+- Add more social media platforms
+- Implement direct social media API integrations
+- Add analytics for share tracking
+- Enhance image optimization for different platforms
+
+
 
 ## v1.0.0 - Camera & Graphics Editor Implementation (April 26, 2024)
 
