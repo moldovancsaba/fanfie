@@ -50,53 +50,51 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
       }
       
       return new Promise((resolve, reject) => {
-        const options = {
-          crossOrigin: 'anonymous'
-        };
+        // Go back to using the callback pattern as it's the recommended approach
+        fabric.Image.fromURL(
+          url,
+          (img) => {
+            if (!mountedRef.current || !canvas) {
+              reject(new Error('Component unmounted'));
+              return;
+            }
 
-        fabric.Image.fromURL(url, options).then((img) => {
-          if (!mountedRef.current || !canvas) {
-            reject(new Error('Component unmounted'));
-            return;
-          }
+            if (!img) {
+              reject(new Error('Failed to load image'));
+              return;
+            }
 
-          if (!img) {
-            reject(new Error('Failed to load image'));
-            return;
-          }
+            console.log('Image loaded with dimensions:', {
+              width: img.width,
+              height: img.height
+            });
 
-          console.log('Image loaded with dimensions:', {
-            width: img.width,
-            height: img.height
-          });
+            const containerWidth = canvas.width || 800;
+            const containerHeight = canvas.height || 600;
 
-          const containerWidth = canvas.width || 800;
-          const containerHeight = canvas.height || 600;
+            const scale = Math.min(
+              containerWidth / (img.width || 1),
+              containerHeight / (img.height || 1)
+            );
 
-          const scale = Math.min(
-            containerWidth / (img.width || 1),
-            containerHeight / (img.height || 1)
-          );
+            console.log('Applying scale:', scale);
 
-          console.log('Applying scale:', scale);
+            img.scale(scale);
+            img.set({
+              originX: 'center',
+              originY: 'center',
+              left: containerWidth / 2,
+              top: containerHeight / 2,
+              selectable: false,
+              evented: false,
+            });
 
-          img.scale(scale);
-          img.set({
-            originX: 'center',
-            originY: 'center',
-            left: containerWidth / 2,
-            top: containerHeight / 2,
-            selectable: false,
-            evented: false,
-          });
-
-          canvas.add(img);
-          canvas.renderAll();
-          resolve();
-        }).catch((error) => {
-          console.error('Error loading image:', error);
-          reject(new Error('Failed to load image'));
-        });
+            canvas.add(img);
+            canvas.renderAll();
+            resolve();
+          },
+          { crossOrigin: 'anonymous' as 'anonymous' }
+        );
       });
     } catch (error) {
       console.error('Error loading image:', error);
