@@ -12,12 +12,6 @@ interface FabricCanvas {
     dispose(): void;
     toDataURL(options?: { format?: string; quality?: number; multiplier?: number }): string;
 }
-type FabricImageObject = {
-    width?: number;
-    height?: number;
-    scale: (value: number) => void;
-    set: (options: any) => void;
-}
 
 interface FabricIText {
     set(options: Record<string, any>): void;
@@ -59,7 +53,8 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
       return new Promise((resolve, reject) => {
         fabric.Image.fromURL(
             url,
-            (img: FabricImageObject) => {
+            // Using fabric.Image type directly from the import
+            (img) => {
                 if (!mountedRef.current || !canvas) {
                   reject(new Error('Component unmounted'));
                   return;
