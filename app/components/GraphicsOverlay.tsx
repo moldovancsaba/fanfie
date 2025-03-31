@@ -50,10 +50,9 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
       }
       
       return new Promise((resolve, reject) => {
-        // Create new image object
-        fabric.Image.fromURL(url, {
-          crossOrigin: 'anonymous',
-          onload: (img) => {
+        fabric.Image.fromURL(
+          url,
+          function(img) {
             if (!mountedRef.current || !canvas) {
               reject(new Error('Component unmounted'));
               return;
@@ -92,8 +91,11 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
             canvas.add(img);
             canvas.renderAll();
             resolve();
+          },
+          {
+            crossOrigin: 'anonymous'
           }
-        });
+        );
       });
     } catch (error) {
       console.error('Error loading image:', error);
