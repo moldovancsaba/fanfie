@@ -93,7 +93,7 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
             canvas.renderAll();
             resolve();
           },
-          { crossOrigin: 'anonymous' as 'anonymous' }
+          { crossOrigin: 'anonymous' as const }
         );
       });
     } catch (error) {
