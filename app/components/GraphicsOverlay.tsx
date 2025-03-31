@@ -20,6 +20,13 @@ interface FabricImage {
     set(options: Record<string, any>): void;
 }
 
+type FabricImageObject = {
+    width?: number;
+    height?: number;
+    scale: (value: number) => void;
+    set: (options: any) => void;
+}
+
 interface FabricIText {
     set(options: Record<string, any>): void;
 }
@@ -58,9 +65,12 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
       }
       
       return new Promise((resolve, reject) => {
-        fabric.Image.fromURL(
-          url,
-          function(img: FabricImage) {
+        fabric.Image.fromURL(url, {
+          crossOrigin: 'anonymous',
+          onError: () => {
+            reject(new Error('Failed to load image'));
+          },
+          onSuccess: (img: FabricImageObject) => {
             if (!mountedRef.current || !canvas) {
               reject(new Error('Component unmounted'));
               return;
@@ -99,14 +109,8 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
             canvas.add(img);
             canvas.renderAll();
             resolve();
-          },
-          {
-            crossOrigin: 'anonymous',
-            onError: () => {
-              reject(new Error('Failed to load image'));
-            }
           }
-        );
+        });
       });
     } catch (error) {
       console.error('Error loading image:', error);
