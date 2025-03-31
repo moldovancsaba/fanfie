@@ -190,13 +190,13 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
         throw new Error('Failed to load fabric.js library');
       }
       
-      const text = new fabric.IText('Double click to edit', {
-      left: 100,
-      top: 100,
-      fontSize: 20,
-      fill: '#000000',
-      fontFamily: 'Arial'
-    });
+      const text: FabricIText = new fabric.IText('Double click to edit', {
+        left: 100,
+        top: 100,
+        fontSize: 20,
+        fill: '#000000',
+        fontFamily: 'Arial'
+      });
       
       fabricCanvasRef.current.add(text);
       fabricCanvasRef.current.setActiveObject(text);
@@ -217,13 +217,13 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
         throw new Error('Failed to load fabric.js library');
       }
       
-      const text = new fabric.Text(emoji, {
-      left: 150,
-      top: 150,
-      fontSize: 40,
-      selectable: true,
-      hasControls: true
-    });
+      const text: FabricText = new fabric.Text(emoji, {
+        left: 150,
+        top: 150,
+        fontSize: 40,
+        selectable: true,
+        hasControls: true
+      });
       
       fabricCanvasRef.current.add(text);
       fabricCanvasRef.current.setActiveObject(text);
