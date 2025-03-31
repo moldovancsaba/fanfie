@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { Image as FabricImage } from 'fabric';
+import type { LoadImageOptions, Canvas, Image as FabricImage } from 'fabric';
 
 interface FabricCanvas {
     width?: number;
@@ -51,12 +51,10 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
       }
       
       return new Promise((resolve, reject) => {
-        // Provide type for the options object
-        const imgOptions = {
-          crossOrigin: 'anonymous' as const,
-        };
-
-        const callback = (img: FabricImage) => {
+        // Create new image object
+        fabric.Image.fromURL(url, {
+          crossOrigin: 'anonymous',
+          onload: (img) => {
             if (!mountedRef.current || !canvas) {
               reject(new Error('Component unmounted'));
               return;
@@ -95,9 +93,8 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
             canvas.add(img);
             canvas.renderAll();
             resolve();
-          };
-
-        fabric.Image.fromURL(url, callback, imgOptions);
+          }
+        });
       });
     } catch (error) {
       console.error('Error loading image:', error);
