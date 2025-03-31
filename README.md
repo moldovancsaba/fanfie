@@ -1,3 +1,147 @@
+# Fanfie - Simple Photo Sharing App
+
+A web application that lets users take photos with their device camera and instantly share them online.
+
+## Current Features
+- Camera Access: Take photos using your device's camera
+- Instant Upload: Direct upload to imgbb.com for photo hosting
+- Share Options: Multiple ways to share your photos
+  - Direct Link
+  - Social Media (Twitter, Facebook)
+  - Download options (PNG/JPEG)
+
+## Technical Stack
+- Next.js 15.2.4
+- TypeScript
+- Tailwind CSS for styling
+- imgbb.com API for image hosting
+- React Hot Toast for notifications
+
+## Getting Started
+
+### Prerequisites
+- Node.js 16.8.0 or later
+- imgbb.com API key
+
+### Setup
+1. Clone the repository
+2. Install dependencies
+   ```bash
+   npm install
+   ```
+3. Create `.env.local` file and add your imgbb.com API key:
+   ```
+   NEXT_PUBLIC_IMGBB_API_KEY=your_api_key_here
+   ```
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+### Building
+```bash
+npm run build
+```
+
+### Deployment
+The project is configured for deployment on Vercel:
+```bash
+vercel --prod
+```
+
+## Browser Support
+- Requires HTTPS or localhost for camera access
+- Modern browsers with MediaDevices API support
+- Mobile browsers supported for optimal camera usage
+
+## Environment Variables
+- `NEXT_PUBLIC_IMGBB_API_KEY`: Your imgbb.com API key (required)
+
+## Future Enhancements
+- [ ] Image editing capabilities
+- [ ] Filters and effects
+- [ ] Custom stickers and text overlay
+- [ ] Social authentication
+- [ ] User galleries
+
+## License
+MIT
+
+## Support
+For issues or suggestions, please open an issue in the repository.
+
+# Fanfie - Simple Photo Sharing App
+
+A web application that lets users take photos with their device camera and instantly share them online.
+
+## Current Features
+- Camera Access: Take photos using your device's camera
+- Instant Upload: Direct upload to imgbb.com for photo hosting
+- Share Options: Multiple ways to share your photos
+  - Direct Link
+  - Social Media (Twitter, Facebook)
+  - Download options (PNG/JPEG)
+
+## Technical Stack
+- Next.js 15.2.4
+- TypeScript
+- Tailwind CSS for styling
+- imgbb.com API for image hosting
+- React Hot Toast for notifications
+
+## Getting Started
+
+### Prerequisites
+- Node.js 16.8.0 or later
+- imgbb.com API key
+
+### Setup
+1. Clone the repository
+2. Install dependencies
+   ```bash
+   npm install
+   ```
+3. Create `.env.local` file and add your imgbb.com API key:
+   ```
+   NEXT_PUBLIC_IMGBB_API_KEY=your_api_key_here
+   ```
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+### Building
+```bash
+npm run build
+```
+
+### Deployment
+The project is configured for deployment on Vercel:
+```bash
+vercel --prod
+```
+
+## Browser Support
+- Requires HTTPS or localhost for camera access
+- Modern browsers with MediaDevices API support
+- Mobile browsers supported for optimal camera usage
+
+## Environment Variables
+- `NEXT_PUBLIC_IMGBB_API_KEY`: Your imgbb.com API key (required)
+
+## Future Enhancements
+- [ ] Image editing capabilities
+- [ ] Filters and effects
+- [ ] Custom stickers and text overlay
+- [ ] Social authentication
+- [ ] User galleries
+
+## License
+MIT
+
+## Support
+For issues or suggestions, please open an issue in the repository.
+
 # Fanfie - Camera & Graphics Editor Web App
 
 CONNECTED DOCUMENTS - always update and use!
@@ -118,3 +262,12 @@ Fanfie works best in modern browsers with the following requirements:
 The easiest way to deploy Fanfie is to use the [Vercel Platform](https://vercel.com/new) from the creators of Next.js.
 
 Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+### ImgBB API Setup
+1. Get your free API key from [imgbb.com](https://api.imgbb.com/)
+2. Create a `.env.local` file in the project root
+3. Add your key:
+   ```
+   NEXT_PUBLIC_IMGBB_API_KEY=your_key_here
+   ```
+4. Restart your development server
