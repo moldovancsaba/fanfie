@@ -2,7 +2,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { LoadImageOptions, Canvas, Image as FabricImage } from 'fabric';
 
 interface FabricCanvas {
     width?: number;
