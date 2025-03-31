@@ -57,51 +57,54 @@ export default function GraphicsOverlay({ imageUrl, onSave, onClose }: GraphicsO
       }
       
       return new Promise((resolve, reject) => {
-        fabric.Image.fromURL(url, {
-          crossOrigin: 'anonymous',
-          onError: () => {
+        fabric.Image.fromURL(
+            url,
+            (img: FabricImageObject) => {
+                if (!mountedRef.current || !canvas) {
+                  reject(new Error('Component unmounted'));
+                  return;
+                }
+
+                if (!img) {
+                  reject(new Error('Failed to load image'));
+                  return;
+                }
+
+                console.log('Image loaded with dimensions:', {
+                  width: img.width,
+                  height: img.height
+                });
+
+                const containerWidth = canvas.width || 800;
+                const containerHeight = canvas.height || 600;
+
+                const scale = Math.min(
+                  containerWidth / (img.width || 1),
+                  containerHeight / (img.height || 1)
+                );
+
+                console.log('Applying scale:', scale);
+
+                img.scale(scale);
+                img.set({
+                  originX: 'center',
+                  originY: 'center',
+                  left: containerWidth / 2,
+                  top: containerHeight / 2,
+                  selectable: false,
+                  evented: false,
+                });
+
+                canvas.add(img);
+                canvas.renderAll();
+                resolve();
+            },
+            {
+                crossOrigin: 'anonymous'
+            }
+        ).catch((error) => {
+            console.error('Error loading image:', error);
             reject(new Error('Failed to load image'));
-          },
-          onSuccess: (img: FabricImageObject) => {
-            if (!mountedRef.current || !canvas) {
-              reject(new Error('Component unmounted'));
-              return;
-            }
-
-            if (!img) {
-              reject(new Error('Failed to load image'));
-              return;
-            }
-
-            console.log('Image loaded with dimensions:', {
-              width: img.width,
-              height: img.height
-            });
-
-            const containerWidth = canvas.width || 800;
-            const containerHeight = canvas.height || 600;
-
-            const scale = Math.min(
-              containerWidth / (img.width || 1),
-              containerHeight / (img.height || 1)
-            );
-
-            console.log('Applying scale:', scale);
-
-            img.scale(scale);
-            img.set({
-              originX: 'center',
-              originY: 'center',
-              left: containerWidth / 2,
-              top: containerHeight / 2,
-              selectable: false,
-              evented: false,
-            });
-
-            canvas.add(img);
-            canvas.renderAll();
-            resolve();
-          }
         });
       });
     } catch (error) {
