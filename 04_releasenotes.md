@@ -22,6 +22,11 @@ After encountering multiple type-system challenges with Fabric.js integration, w
 - Created foundation for future canvas service abstraction
 - Improved error handling and resource cleanup
 
+## Technical Stack (as of v1.1.3)
+- Next.js v15.2.4
+- React v19.0.0
+- Fabric.js v6.6.1
+
 # Fanfie - Release Notes
 
 ## v1.1.2 (2025-03-30)

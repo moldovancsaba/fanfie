@@ -1,7 +1,13 @@
 # Fanfie Project Roadmap
 
 ## Project Overview
-Fanfie is a web application for capturing, editing, and sharing photos with graphical overlays. The project uses Next.js, TypeScript, and currently Fabric.js for canvas operations. It is hosted on Vercel and requires comprehensive testing.
+Fanfie is a web application for capturing, editing, and sharing photos with graphical overlays. The project uses Next.js v15.2.4 with App Router, TypeScript, and Fabric.js v6.6.1 for canvas operations. It is hosted on Vercel and requires comprehensive testing.
+
+## Technical Implementation
+The current implementation uses:
+- Next.js v15.2.4 with App Router
+- React v19.0.0
+- Fabric.js v6.6.1 for canvas operations
 
 ## Strategic Goals
 

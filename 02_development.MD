@@ -4,11 +4,11 @@
 Develop a web application that allows users to access their camera, take pictures, overlay graphic elements, and share the edited images to an imgbb database via an API.
 
 ## Tech Stack:
-- **Frontend Framework:** Next.js (provides server-side rendering and easy deployment on Vercel)
-- **UI Library:** React (for component-based architecture)
-- **Language:** TypeScript for type safety and better development experience
-- **API Integration:** Use Fetch or Axios to interact with imgbb API
-- **Graphics Layer:** Utilize HTML5 Canvas API or a library like Fabric.js to add graphics overlays to images
+- **Frontend Framework:** Next.js v15.2.4 (provides server-side rendering and easy deployment on Vercel)
+- **UI Library:** React v19.0.0
+- **Language:** TypeScript (latest)
+- **Styling:** Tailwind CSS (latest)
+- **Graphics Layer:** Fabric.js v6.6.1
 
 ## Implementation Steps:
 

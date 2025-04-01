@@ -10,12 +10,16 @@ A web application that lets users take photos with their device camera and insta
   - Social Media (Twitter, Facebook)
   - Download options (PNG/JPEG)
 
-## Technical Stack
-- Next.js 15.2.4
-- TypeScript
-- Tailwind CSS for styling
-- imgbb.com API for image hosting
-- React Hot Toast for notifications
+## Technology Stack
+
+- **Frontend Framework**: Next.js v15.2.4 (with App Router)
+- **UI Library**: React v19.0.0
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS v3.3.3
+- **Canvas Manipulation**: Fabric.js v6.6.1
+- **Icon Library**: React Icons v5.5.0
+- **Notifications**: React Hot Toast v2.5.2
+- **Image Hosting**: imgbb.com API
 
 ## Getting Started
 
@@ -150,7 +154,7 @@ CONNECTED DOCUMENTS - always update and use!
 03_lessonslearned.MD
 04_releasenotes.md
 05_50FirstDates.MD
-
+06_technology.MD
 
 
 

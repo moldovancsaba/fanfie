@@ -5,9 +5,9 @@ import { useRef, useState, useEffect } from 'react';
 interface CameraComponentProps {
   onCapture: (imageData: string) => void;
   disabled?: boolean; // Optional disabled prop
-  onCapture: (imageData: string) => void;
+}
 
-type CameraStatus = 'idle' | 'accessing' | 'streaming' | 'error';
+export type CameraStatus = 'idle' | 'accessing' | 'streaming' | 'error';
 
 const CameraComponent: React.FC<CameraComponentProps> = ({ onCapture, disabled }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
