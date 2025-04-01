@@ -4,11 +4,12 @@ import { useRef, useState, useEffect } from 'react';
 
 interface CameraComponentProps {
   onCapture: (imageData: string) => void;
-}
+  disabled?: boolean; // Optional disabled prop
+  onCapture: (imageData: string) => void;
 
 type CameraStatus = 'idle' | 'accessing' | 'streaming' | 'error';
 
-const CameraComponent: React.FC<CameraComponentProps> = ({ onCapture }) => {
+const CameraComponent: React.FC<CameraComponentProps> = ({ onCapture, disabled }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -205,6 +206,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ onCapture }) => {
         <button 
           onClick={capturePhoto}
           className="mt-4 px-6 py-3 bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-600 transition flex items-center justify-center"
+          disabled={disabled}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
