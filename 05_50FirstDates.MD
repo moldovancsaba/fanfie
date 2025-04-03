@@ -365,3 +365,49 @@ The photo capture and editing functionality is now working correctly:
 - Optimize image processing for better performance
 - Add more sticker options
 - Implement undo/redo functionality
+
+
+# Fanfie Application Workflows
+
+## Shot Preview Workflow (v1.2.0)
+
+### Overview
+- Introduced a new "shot" preview step between camera capture and editor
+- Three distinct view states: camera → shot → editor
+- Image upload is now explicitly triggered by Share button action
+
+### Detailed Flow
+1. **Camera View** 
+   - User captures photo using CameraComponent
+   - Photo is stored as base64 in `imageData` state
+   - View transitions to Shot Preview
+
+2. **Shot Preview**
+   - Displays captured image
+   - Provides two action buttons:
+     - **Share**: Triggers upload to ImgBB and transitions to Editor
+     - **Back**: Returns to Camera View, discarding the capture
+
+3. **Editor View** 
+   - Accessed only after successful upload
+   - Shows uploaded image URL
+   - Future editing functionality will be added here
+
+### Technical Implementation
+- New state variables:
+  - `view`: Tracks current screen ("camera" | "shot" | "editor")
+  - `imageData`: Stores base64 image between capture and upload
+- Modified handlers:
+  - `handleCapture`: Now only sets state (no upload)
+  - `handleShare`: Handles ImgBB upload 
+
+### Known Limitations
+1. Large images (>5MB) may cause performance issues
+2. No way to retry failed uploads (must go back to camera)
+3. Image quality is currently reduced during base64 conversion
+
+### Edge Cases Handled
+- Missing API key validation before upload attempt
+- Upload state management (loading indicators)
+- Proper view state cleanup on Back action
+
