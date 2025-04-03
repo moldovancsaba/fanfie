@@ -1,3 +1,15 @@
+
+# Fanfie - Visual Memory Platform
+
+**Core Documentation**:
+- [Development Diary](/50FirstDates.MD)
+- [Release History](/RELEASE_NOTES.md) 
+- [Lessons Learned](/LESSONS_LEARNED.md)
+
+## [▶️ Installation Guide]
+## [📜 API Reference]
+## [⚠️ Known Issues]
+
 # Fanfie - Simple Photo Sharing App
 
 A web application that lets users take photos with their device camera and instantly share them online.
@@ -145,6 +157,10 @@ MIT
 
 ## Support
 For issues or suggestions, please open an issue in the repository.
+
+----
+
+**Latest Stable Deployment:** 2025-04-03 12:30 CEST | Version v1.2.7 | [Production URL](https://fanfie-12g87x9.vercel.app)
 
 # Fanfie - Camera & Graphics Editor Web App
 
