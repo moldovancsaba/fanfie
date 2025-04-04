@@ -1,25 +1,25 @@
-# Fanfie Development Lessons
+# Development Lessons & Solutions
 
-## Production Setup (2025-04-04)
+## 2025-04-04: Camera Implementation
 
-### TypeScript Configuration
-- **Issue**: Initial JSX parsing errors due to HTML entity encoding
-- **Resolution**: Properly configured tsconfig.json with strict JSX handling
-- **Prevention**: Always validate TSX syntax before deployment
+### Browser Compatibility
+- Use `playsInline` attribute for iOS Safari video compatibility
+- Set `facingMode: 'user'` for consistent front camera selection
+- Handle permissions explicitly for better user experience
+
+### MediaStream Cleanup
+- Importance: Always stop camera tracks when component unmounts
+- Solution: Implemented cleanup in useEffect return function
+- Prevention: Create reusable hooks for media stream management
+
+## 2025-04-04: Initial Setup
 
 ### Vercel Deployment
-- **Issue**: Build failures due to missing app directory structure
-- **Resolution**: Implemented minimal viable Next.js app layout
-- **Prevention**: Use standardized app directory template for future projects
+- Issue: Initial deployment resulted in 401 unauthorized
+- Solution: Removed and relinked project with proper Git integration
+- Prevention: Always use `vercel link` before first deployment
 
-### Git Configuration
-- **Issue**: SSH key authentication failures
-- **Resolution**: Switched to HTTPS for initial setup
-- **Prevention**: Document Git authentication setup in README
-
-## Documentation Framework (2025-04-03)
-
-### Version Control
-- **Issue**: Inconsistent version tracking across documents
-- **Resolution**: Implemented semantic versioning (v0.1.0+)
-- **Prevention**: Automated version bumping in future iterations
+### Dependencies
+- Next.js 14.0.0 requires React 18.2.0 for compatibility
+- Tailwind CSS requires proper content configuration in tailwind.config.js
+- SSH key setup required for secure Git deployment
