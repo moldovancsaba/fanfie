@@ -1,3 +1,46 @@
+# Development Lessons & Solutions
+
+## 📌 Applies To
+All operations inside the following path:  
+`/Users/moldovan/Projects/fanfie/`
+
+Always use the following documents:
+- `README.MD`
+- `01_roadmap.MD`
+- `02_development.MD`
+- `03_lessonslearned.MD`
+- `04_releasenotes.MD`
+- `05_50FirstDates.MD`
+- `06_technology.MD`
+- `07_Definition_of_Done_AI_Warp.MD`
+- `08_One_Function_At_A_Time_Rule.MD`
+- `09_Autopilot_Consent_Project_Access.MD`
+
+
+## 2025-04-04: Camera Implementation
+
+### Browser Compatibility
+- Use `playsInline` attribute for iOS Safari video compatibility
+- Set `facingMode: 'user'` for consistent front camera selection
+- Handle permissions explicitly for better user experience
+
+### MediaStream Cleanup
+- Importance: Always stop camera tracks when component unmounts
+- Solution: Implemented cleanup in useEffect return function
+- Prevention: Create reusable hooks for media stream management
+
+## 2025-04-04: Initial Setup
+
+### Vercel Deployment
+- Issue: Initial deployment resulted in 401 unauthorized
+- Solution: Removed and relinked project with proper Git integration
+- Prevention: Always use `vercel link` before first deployment
+
+### Dependencies
+- Next.js 14.0.0 requires React 18.2.0 for compatibility
+- Tailwind CSS requires proper content configuration in tailwind.config.js
+- SSH key setup required for secure Git deployment
+
 ## Web Share API Implementation
 
 ### Challenge: Cross-Browser Compatibility

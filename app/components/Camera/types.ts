@@ -8,5 +8,5 @@ export interface CameraState {
   error: Error | null;
   isLoading: boolean;
   hasPermission: boolean;
+  isVideoReady: boolean;
 }
-

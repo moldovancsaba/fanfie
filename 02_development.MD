@@ -1,5 +1,22 @@
 # Fanfie Project Development Details
 
+## 📌 Applies To
+All operations inside the following path:  
+`/Users/moldovan/Projects/fanfie/`
+
+Always use the following documents:
+- `README.MD`
+- `01_roadmap.MD`
+- `02_development.MD`
+- `03_lessonslearned.MD`
+- `04_releasenotes.MD`
+- `05_50FirstDates.MD`
+- `06_technology.MD`
+- `07_Definition_of_Done_AI_Warp.MD`
+- `08_One_Function_At_A_Time_Rule.MD`
+- `09_Autopilot_Consent_Project_Access.MD`
+
+
 ## Project Purpose:
 Develop a web application that allows users to access their camera, take pictures, overlay graphic elements, and share the edited images to an imgbb database via an API.
 

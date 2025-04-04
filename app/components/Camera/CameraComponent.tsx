@@ -1,107 +1,82 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { CameraProps, CameraState } from './types';
+
+interface CameraProps {
+  onCapture: (imageData: string) => void;
+  onError: (error: Error) => void;
+}
 
 export default function CameraComponent({ onCapture, onError }: CameraProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [state, setState] = useState<CameraState>({
-    stream: null,
-    error: null,
-    isLoading: true,
-    hasPermission: false,
-  });
+  const [isReady, setIsReady] = useState(false);
 
-  const initializeCamera = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'user' },
-        audio: false 
-      });
-      
-      setState(prev => ({
-        ...prev,
-        stream,
-        isLoading: false,
-        hasPermission: true,
-      }));
+  useEffect(() => {
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+        });
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (error) {
+        onError(error as Error);
       }
-    } catch (error) {
-      setState(prev => ({
-        ...prev,
-        error: error as Error,
-        isLoading: false,
-        hasPermission: false,
-      }));
-      onError(error as Error);
     }
+
+    startCamera();
+
+    return () => {
+      const stream = videoRef.current?.srcObject as MediaStream;
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
   }, [onError]);
 
-  const capturePhoto = useCallback(() => {
-    if (!videoRef.current || !state.stream) return;
+  const handleLoadedMetadata = useCallback(() => {
+    if (videoRef.current) {
+      setIsReady(true);
+    }
+  }, []);
 
+  const handleCapture = useCallback(() => {
+    if (!videoRef.current || !isReady) return;
+
+    const video = videoRef.current;
     const canvas = document.createElement('canvas');
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
-    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
     const context = canvas.getContext('2d');
     if (!context) return;
 
-    context.drawImage(videoRef.current, 0, 0);
-    const imageData = canvas.toDataURL('image/jpeg');
+    context.drawImage(video, 0, 0);
+    const imageData = canvas.toDataURL('image/jpeg', 0.8);
     onCapture(imageData);
-  }, [onCapture, state.stream]);
-
-  useEffect(() => {
-    initializeCamera();
-    
-    return () => {
-      if (state.stream) {
-        state.stream.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, [initializeCamera]);
-
-  if (state.error) {
-    return (
-      <div className="flex flex-col items-center justify-center p-4 text-red-500">
-        <p>Camera Error: {state.error.message}</p>
-        <button 
-          onClick={initializeCamera}
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
-  if (state.isLoading) {
-    return (
-      <div className="flex items-center justify-center p-4">
-        <p>Initializing camera...</p>
-      </div>
-    );
-  }
+  }, [isReady, onCapture]);
 
   return (
-    <div className="relative">
+    <div className="relative w-full aspect-[4/3] bg-black rounded-lg overflow-hidden">
       <video
         ref={videoRef}
         autoPlay
         playsInline
-        className="w-full max-w-lg mx-auto rounded-lg shadow-lg"
+        muted
+        onLoadedMetadata={handleLoadedMetadata}
+        className="absolute inset-0 w-full h-full object-cover"
       />
-      <button
-        onClick={capturePhoto}
-        className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-6 py-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
-      >
-        Take Photo
-      </button>
+      {isReady && (
+        <button
+          onClick={handleCapture}
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 px-6 py-2 bg-blue-500 text-white rounded-full"
+        >
+          Take Photo
+        </button>
+      )}
     </div>
   );
 }
-

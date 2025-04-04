@@ -1,5 +1,41 @@
 # Fanfie Release History
 
+## 📌 Applies To
+All operations inside the following path:  
+`/Users/moldovan/Projects/fanfie/`
+
+Always use the following documents:
+- `README.MD`
+- `01_roadmap.MD`
+- `02_development.MD`
+- `03_lessonslearned.MD`
+- `04_releasenotes.MD`
+- `05_50FirstDates.MD`
+- `06_technology.MD`
+- `07_Definition_of_Done_AI_Warp.MD`
+- `08_One_Function_At_A_Time_Rule.MD`
+- `09_Autopilot_Consent_Project_Access.MD`
+
+
+## v0.1.2 - 2025-04-04
+- Camera Functionality
+  - Implemented device camera access with permissions handling
+  - Added photo capture capability with real-time preview
+  - Image download functionality
+  - Error handling and user feedback
+  - Responsive UI with Tailwind CSS
+
+## v0.1.1 - 2025-04-04
+- Production Foundation
+  - Established Next.js 14 app architecture
+  - Configured TypeScript with strict validation
+  - Added Tailwind CSS styling system
+  - Implemented Vercel deployment pipeline
+  - Set up Git repository with SSH deployment
+
+
+# Fanfie Release History
+
 ## v0.1.1 - 2025-04-04
 - Production Foundation
   - Established Next.js 14 app architecture
