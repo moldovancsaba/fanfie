@@ -15,7 +15,11 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
     async function startCamera() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
+          video: {
+            facingMode: 'user',
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
           audio: false
         });
 
@@ -55,28 +59,29 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
     if (!context) return;
 
     context.drawImage(video, 0, 0);
-    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+    const imageData = canvas.toDataURL('image/jpeg', 0.9);
     onCapture(imageData);
   }, [isReady, onCapture]);
 
   return (
-    <div className="relative w-full aspect-[4/3] bg-black rounded-lg overflow-hidden">
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        muted
-        onLoadedMetadata={handleLoadedMetadata}
-        className="absolute inset-0 w-full h-full object-cover"
-      />
-      {isReady && (
-        <button
-          onClick={handleCapture}
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 px-6 py-2 bg-blue-500 text-white rounded-full"
-        >
-          Take Photo
-        </button>
+    <div className="relative bg-black rounded-lg shadow-lg overflow-hidden">
+      <div className="aspect-[4/3]">
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          onLoadedMetadata={handleLoadedMetadata}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {isReady && (
+          <div className="absolute inset-x-0 bottom-4       )}
+      {!isReady && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <p className="text-white text-lg">Starting camera...</p>
+        </div>
       )}
+      </div>
     </div>
   );
 }
