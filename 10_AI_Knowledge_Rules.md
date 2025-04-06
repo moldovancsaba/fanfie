@@ -7,7 +7,7 @@ To ensure Warp AI operates with full contextual understanding of the `fanfie` pr
 
 ## 📌 Applies To
 All operations inside the following path:  
-`/Users/moldovan/Projects/fanfie/`
+`/Users/moldovan/Projects/`
 
 Must always reference and stay in sync with the following documents:
 - `README.MD`
@@ -20,6 +20,9 @@ Must always reference and stay in sync with the following documents:
 - `07_Definition_of_Done_AI_Warp.MD`
 - `08_One_Function_At_A_Time_Rule.MD`
 - `09_Autopilot_Consent_Project_Access.MD`
+- `10_AI_Knowledge_Rules.MD`
+- `11_AI_Truthfulness_and_Verification.MD`
+- `12_AI_Execution_Protocol.MD`
 
 ---
 

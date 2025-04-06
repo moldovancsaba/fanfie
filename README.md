@@ -8,6 +8,26 @@ Production-grade selfie application with advanced camera controls and sharing ca
 
 ## Quick Start
 
+## 📌 Applies To
+All operations inside the following path:  
+`/Users/moldovan/Projects/`
+
+Must always reference and stay in sync with the following documents:
+- `README.MD`
+- `01_roadmap.MD`
+- `02_development.MD`
+- `03_lessonslearned.MD`
+- `04_releasenotes.MD`
+- `05_50FirstDates.MD`
+- `06_technology.MD`
+- `07_Definition_of_Done_AI_Warp.MD`
+- `08_One_Function_At_A_Time_Rule.MD`
+- `09_Autopilot_Consent_Project_Access.MD`
+- `10_AI_Knowledge_Rules.MD`
+- `11_AI_Truthfulness_and_Verification.MD`
+- `12_AI_Execution_Protocol.MD`
+
+
 ```bash
 git clone https://github.com/moldovancsaba/fanfie.git
 cd fanfie
