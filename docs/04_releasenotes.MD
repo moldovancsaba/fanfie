@@ -57,3 +57,8 @@ This document tracks all releases and updates to the Fanfie application.
 
 *Future releases will be documented here as they are deployed.*
 
+
+## v1.3.1 (2025-04-07)
+- Fix camera component path resolution
+- Add TypeScript path aliases for better imports
+- Improve camera error handling

@@ -175,3 +175,9 @@ This document captures challenges, solutions, and insights gained during the dev
 
 *This document will be continuously updated as new challenges are encountered and solutions are implemented.*
 
+
+### Camera Implementation (2025-04-07)
+Always validate:
+- Actual file paths vs TS config
+- Export default patterns
+- vercel.json config syntax
