@@ -82,4 +82,50 @@ const SimpleCameraComponent: React.FC = () => {
         setStatus('denied');
         
         // Handle different types of errors
-        if (error.name === 'NotAllowedError')
+        if (error.name === 'NotAllowedError') {
+          setErrorMessage('Camera permission denied. Please enable camera permissions in your browser settings.');
+        } else if (error.name === 'NotFoundError') {
+          setErrorMessage('No camera detected on this device.');
+        } else if (error.name === 'NotReadableError') {
+          setErrorMessage('Camera is already in use by another application.');
+        } else {
+          setErrorMessage(`Camera error: ${error.message || 'Unknown error'}`);
+        }
+      });
+
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
+  return (
+    <div className="max-w-screen-sm mx-auto bg-gray-100 rounded-lg overflow-hidden">
+      {status === 'requesting' && (
+        <div className="p-4 text-blue-600">Initializing camera...</div>
+      )}
+
+      {status === 'denied' && errorMessage && (
+        <div className="p-4 text-red-600">{errorMessage}</div>
+      )}
+
+      {status === 'granted' && (
+        <div className="relative">
+          <video 
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="w-full min-h-[480px] bg-slate-500"
+          />
+          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 text-sm">
+            {videoDimensions ? `Live ${videoDimensions.width}x${videoDimensions.height}` : "Camera active"}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default SimpleCameraComponent;
