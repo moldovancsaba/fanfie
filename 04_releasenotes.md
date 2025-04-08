@@ -275,3 +275,4 @@ For upcoming releases, we plan to enhance Fanfie with:
 
 *Note: This release has been tested on multiple devices and browsers to ensure compatibility, but users are encouraged to report any issues they encounter.*
 
+v1.3.2
