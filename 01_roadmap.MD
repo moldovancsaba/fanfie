@@ -4,7 +4,7 @@
 All operations inside the following path:  
 `/Users/moldovan/Projects/fanfie/`
 
-Always use the following documents:
+Must always reference and stay in sync with the following documents:
 - `README.MD`
 - `01_roadmap.MD`
 - `02_development.MD`
@@ -15,6 +15,10 @@ Always use the following documents:
 - `07_Definition_of_Done_AI_Warp.MD`
 - `08_One_Function_At_A_Time_Rule.MD`
 - `09_Autopilot_Consent_Project_Access.MD`
+- `10_AI_Knowledge_Rules.MD`
+- `11_AI_Truthfulness_and_Verification.MD`
+- `12_AI_Execution_Protocol.MD`
+
 
 
 ## Project Overview
