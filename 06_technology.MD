@@ -54,9 +54,22 @@ Must always reference and stay in sync with the following documents:
 
 - **imgbb.com API Integration**
   - Purpose: Image hosting service
-  - Implementation: Direct image upload and sharing capabilities
-
-## Development & Build
+  - Implementation:
+    - Secure API route at `/api/upload`
+    - Client-side upload handling with progress feedback
+    - Environment variable management
+    - Error handling for failed uploads
+  - Security Practices:
+    - 🔒 Server-side only API key (IMGBB_API_KEY) - never exposed to client
+    - 🛡️ Multi-layer validation:
+      - Client-side: 5MB file size limit
+      - Server-side: 
+        - 5MB size validation
+        - MIME type verification (image/* only)
+        - Error code standardization (4xx/5xx)
+    - Temporary server-side processing
+    - CORS limited to same-origin
+    - Security headers enable CORS protection
 - **Node.js**: v16.8.0+
   - Purpose: Runtime environment
   - Requirements: Required for local development and build processes
@@ -73,7 +86,7 @@ Must always reference and stay in sync with the following documents:
 ## Environment Requirements
 - HTTPS or localhost required for camera access
 - Environment variables:
-  - NEXT_PUBLIC_IMGBB_API_KEY (required for image hosting)
+  - IMGBB_API_KEY (server-side environment variable)
 
 ## Browser Support
 - **Desktop Browsers**:
