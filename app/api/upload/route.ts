@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import sharp from 'sharp'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
@@ -27,7 +26,7 @@ const errorResponses = {
 }
 
 /**
- * Handles secure image uploads to ImgBB with EXIF sanitization
+ * Handles secure image uploads to ImgBB
  * @param request - The incoming request containing image file
  * @returns NextResponse with upload result or error
  */
@@ -40,11 +39,9 @@ export async function POST(request: NextRequest) {
       console.error('ImgBB API key not found')
       return errorResponses.serviceUnavailable()
     }
-    console.log('API key valid')
 
     const formData = await request.formData()
     const image = formData.get('image')
-    console.log('Received image:', image instanceof Blob, image?.type)
 
     // Validate payload
     if (!(image instanceof Blob)) {
@@ -60,20 +57,21 @@ export async function POST(request: NextRequest) {
       return errorResponses.invalidType()
     }
 
-    console.log('Image validation passed')
-
     // Convert image to base64
-    const arrayBuffer = await image.arrayBuffer()
-    const uint8Array = new Uint8Array(arrayBuffer)
-    const base64Image = btoa(String.fromCharCode.apply(null, [...uint8Array]))
-    console.log('Converted to base64')
+    const base64Image = await new Promise<string>((resolve) => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const base64String = reader.result as string
+        const base64WithoutHeader = base64String.split(',')[1]
+        resolve(base64WithoutHeader)
+      }
+      reader.readAsDataURL(image)
+    })
 
     // Create the form data for ImgBB
     const uploadForm = new URLSearchParams()
     uploadForm.append('image', base64Image)
 
-    console.log('Sending request to ImgBB')
-    
     // Upload to ImgBB
     const response = await fetch(
       `https://api.imgbb.com/1/upload?key=${apiKey}`,
@@ -87,11 +85,7 @@ export async function POST(request: NextRequest) {
     )
     
     const data = await response.json()
-    console.log('ImgBB response:', {
-      status: response.status,
-      ok: response.ok,
-      data: data
-    })
+    console.log('ImgBB response status:', response.status)
     
     if (!response.ok) {
       console.error('ImgBB error response:', data)
@@ -102,11 +96,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (!data.data?.url) {
-      console.error('No URL in ImgBB response:', data)
+      console.error('No URL in ImgBB response')
       return errorResponses.serverError()
     }
 
-    console.log('Upload successful:', data.data.url)
+    console.log('Upload successful')
     
     return NextResponse.json({ 
       success: true,
