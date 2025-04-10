@@ -1,129 +1,103 @@
 "use client"
 
-import { useState, useRef, useEffect } from 'react'
+import { useRef, useState } from 'react'
 
 export default function Camera() {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const [imageData, setImageData] = useState<string | null>(null)
+  const [photo, setPhoto] = useState<string | null>(null)
 
-  useEffect(() => {
-    // Start camera automatically when component mounts
-    async function startCamera() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream
-        }
-      } catch (error) {
-        console.error('Camera error:', error)
-      }
+  // Start camera when button is clicked
+  const startCamera = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream
     }
-    startCamera()
-  }, [])
+  }
 
+  // Take photo from video feed
   const takePhoto = () => {
     if (!videoRef.current) return
-
     const canvas = document.createElement('canvas')
     canvas.width = videoRef.current.videoWidth
     canvas.height = videoRef.current.videoHeight
-    
-    const context = canvas.getContext('2d')
-    if (!context) return
-
-    context.drawImage(videoRef.current, 0, 0)
-    const data = canvas.toDataURL('image/jpeg')
-    setImageData(data)
+    const ctx = canvas.getContext('2d')
+    if (ctx) {
+      ctx.drawImage(videoRef.current, 0, 0)
+      setPhoto(canvas.toDataURL())
+    }
   }
 
-  const uploadToImgBB = async () => {
-    if (!imageData) return
-    console.log('Starting upload...')
-
+  // Upload to ImgBB
+  const upload = async () => {
+    if (!photo) return
+    
     try {
-      const response = await fetch(imageData)
-      const blob = await response.blob()
-      console.log('Blob created:', blob.size, 'bytes')
+      // Convert base64 to blob
+      const res = await fetch(photo)
+      const blob = await res.blob()
 
+      // Create form data
       const formData = new FormData()
       formData.append('image', blob)
 
-      console.log('Sending to API...')
-      const upload = await fetch('/api/upload', {
+      // Send to our API
+      const uploadRes = await fetch('/api/upload', {
         method: 'POST',
         body: formData
       })
 
-      const result = await upload.json()
-      console.log('Upload result:', result)
+      const result = await uploadRes.json()
       
+      // Open the image URL in new tab
       if (result.data?.url) {
-        window.open(result.data.url, '_blank')
+        window.open(result.data.url)
       }
-    } catch (error) {
-      console.error('Upload error:', error)
+    } catch (err) {
+      console.error('Upload failed:', err)
     }
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '1rem' }}>
-      <video
+    <div>
+      <h1>Simple Camera Upload</h1>
+      
+      <button onClick={startCamera}>
+        1. Start Camera
+      </button>
+
+      <br />
+      <br />
+
+      <video 
         ref={videoRef}
-        autoPlay
+        autoPlay 
         playsInline
-        style={{ width: '100%', maxWidth: '500px', border: '1px solid #ccc', borderRadius: '8px' }}
+        style={{ width: '400px', height: '300px', border: '2px solid black' }}
       />
 
-      {!imageData ? (
-        <button 
-          onClick={takePhoto}
-          style={{ 
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            padding: '10px 20px',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer'
-          }}
-        >
-          Take Photo
-        </button>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', width: '100%', maxWidth: '500px' }}>
+      <br />
+      <br />
+
+      <button onClick={takePhoto}>
+        2. Take Photo
+      </button>
+
+      <br />
+      <br />
+
+      {photo && (
+        <>
           <img 
-            src={imageData} 
-            alt="Captured" 
-            style={{ width: '100%', border: '1px solid #ccc', borderRadius: '8px' }} 
+            src={photo} 
+            alt="Captured"
+            style={{ width: '400px', height: '300px', border: '2px solid black' }}
           />
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <button
-              onClick={() => setImageData(null)}
-              style={{ 
-                backgroundColor: '#f44336',
-                color: 'white',
-                padding: '10px 20px',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer'
-              }}
-            >
-              Retake
-            </button>
-            <button
-              onClick={uploadToImgBB}
-              style={{ 
-                backgroundColor: '#2196F3',
-                color: 'white',
-                padding: '10px 20px',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer'
-              }}
-            >
-              Upload to ImgBB
-            </button>
-          </div>
-        </div>
+          <br />
+          <br />
+          <button onClick={upload}>
+            3. Upload to ImgBB
+          </button>
+        </>
       )}
     </div>
   )

@@ -2,13 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
+    // Get the image from the request
     const formData = await request.formData()
     const image = formData.get('image')
-    
-    if (!image) {
-      return NextResponse.json({ error: 'No image provided' }, { status: 400 })
-    }
 
+    // Send to ImgBB
     const imgbbFormData = new FormData()
     imgbbFormData.append('image', image)
 
@@ -22,7 +20,9 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json()
     return NextResponse.json(data)
+
   } catch (error) {
+    console.error('Upload error:', error)
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
   }
 }
