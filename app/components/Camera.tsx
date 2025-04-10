@@ -207,84 +207,80 @@ export default function Camera() {
     await startCamera();
   };
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black">
+    <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black">
       {/* Error message display - emoji only */}
       {error && (
-        <div className="absolute top-0 left-0 right-0 z-50 bg-red-500 p-2 text-center">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-red-500 p-2 text-center">
           ❌
         </div>
       )}
       
       {/* Loading indicator - minimal version */}
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center z-40 bg-black bg-opacity-75">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-75">
           <div className="w-16 h-16 border-t-4 border-b-4 border-white rounded-full animate-spin"></div>
         </div>
       )}
       
-      {/* Canvas container - optimized for fullscreen display while maintaining aspect ratio */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        {photo ? (
-          /* Photo view (after capture) - maximized with emoji controls */
-          <>
-            {/* Captured photo - fullscreen canvas */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <img 
-                src={photo} 
-                alt="Captured photo"
-                className="max-h-full max-w-full w-auto h-auto object-contain" 
-              />
-            </div>
+      {/* Main content area - full viewport canvas */}
+      {photo ? (
+        /* Photo view (after capture) */
+        <div className="w-screen h-screen flex items-center justify-center bg-black">
+          {/* Captured photo - centered and maintaining aspect ratio */}
+          <img 
+            src={photo} 
+            alt="Captured photo"
+            className="w-full h-full object-contain" 
+          />
+          
+          {/* Emoji controls overlay - centered at bottom */}
+          <div className="fixed bottom-10 left-0 right-0 flex justify-center items-center space-x-24 z-50">
+            <button
+              onClick={retake}
+              className="w-20 h-20 flex items-center justify-center text-5xl bg-black bg-opacity-60 rounded-full hover:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-white transition-all shadow-xl"
+              disabled={loading}
+              aria-label="Retake photo"
+            >
+              🔄
+            </button>
             
-            {/* Emoji controls overlay - centered and larger */}
-            <div className="absolute bottom-12 left-0 right-0 flex justify-center space-x-20 z-20">
-              <button
-                onClick={retake}
-                className="w-20 h-20 flex items-center justify-center text-5xl bg-black bg-opacity-60 rounded-full hover:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-white transition-all shadow-lg"
-                disabled={loading}
-                aria-label="Retake photo"
-              >
-                🔄
-              </button>
-              
-              <button
-                onClick={uploadPhoto}
-                className="w-20 h-20 flex items-center justify-center text-5xl bg-black bg-opacity-60 rounded-full hover:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-white transition-all shadow-lg"
-                disabled={loading}
-                aria-label="Upload photo"
-              >
-                {loading ? 
-                  <div className="w-10 h-10 border-t-2 border-b-2 border-white rounded-full animate-spin"></div> : 
-                  '⬆️'}
-              </button>
+            <button
+              onClick={uploadPhoto}
+              className="w-20 h-20 flex items-center justify-center text-5xl bg-black bg-opacity-60 rounded-full hover:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-white transition-all shadow-xl"
+              disabled={loading}
+              aria-label="Upload photo"
+            >
+              {loading ? 
+                <div className="w-10 h-10 border-t-2 border-b-2 border-white rounded-full animate-spin"></div> : 
+                '⬆️'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* Camera view (before capture) */
+        <div className="w-screen h-screen flex items-center justify-center bg-black">
+          {/* Video element - centered and maintaining aspect ratio */}
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="w-full h-full object-contain"
+          />
+          
+          {/* Camera overlay status - minimal */}
+          {!loading && !cameraReady && (
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-40">
+              <div className="w-12 h-12 border-t-3 border-b-3 border-white rounded-full animate-spin"></div>
             </div>
-          </>
-        ) : (
-          /* Camera view (before capture) - maximized with emoji controls */
-          <>
-            {/* Video element - fullscreen canvas */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="max-h-full max-w-full w-auto h-auto object-contain"
-              />
-              
-              {/* Camera overlay status - minimal */}
-              {!loading && !cameraReady && (
-                <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center z-10">
-                  <div className="w-12 h-12 border-t-3 border-b-3 border-white rounded-full animate-spin"></div>
-                </div>
-              )}
-            </div>
-            
-            {/* Take photo emoji button - using 🆕 as requested */}
+          )}
+          
+          {/* Take photo emoji button - positioned at bottom center */}
+          <div className="fixed bottom-10 left-0 right-0 flex justify-center items-center z-50">
             <button
               onClick={takePhoto}
               disabled={loading || !cameraReady}
-              className={`absolute bottom-12 w-24 h-24 flex items-center justify-center text-6xl rounded-full z-20 shadow-lg ${
+              className={`w-24 h-24 flex items-center justify-center text-6xl rounded-full shadow-xl ${
                 loading || !cameraReady 
                   ? 'bg-gray-800 bg-opacity-50 text-gray-400' 
                   : 'bg-black bg-opacity-60 hover:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-white transition-all'
@@ -295,9 +291,9 @@ export default function Camera() {
                 <div className="w-12 h-12 border-t-2 border-b-2 border-white rounded-full animate-spin"></div> : 
                 '🆕'}
             </button>
-          </>
-        )}
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
