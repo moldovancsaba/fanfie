@@ -1,5 +1,30 @@
 # RELEASE NOTES
 
+## v2.3.1 (2025-04-10)
+
+### 🔒 Security & Stability
+- Fixed critical security vulnerabilities in Next.js (updated to 14.2.28)
+- Improved upload route error handling and EXIF sanitization
+- Fixed TypeScript errors in Camera component
+- Aligned React version to 18.2.0 for better compatibility
+
+### 💻 Technical Improvements
+- Added proper EXIF data sanitization in image uploads
+- Improved error handling and type safety in upload route
+- Enhanced Camera component with proper state management
+- Added cleanup for camera resources
+
+### 📦 Dependencies
+- React: 18.2.0 (downgraded from 19.0.0 for stability)
+- Next.js: 14.2.28
+- TypeScript: ^5.3.3
+- Sharp: ^0.33.2
+
+### 🚀 Deployment
+- Production: https://fanfie-e2i2q4b8s-narimato.vercel.app
+- Build Status: ✅ Success
+- Performance Score: 88.1kB initial JS
+
 ## v2.3.0 (2025-04-08)
 
 ### 🔒 Security & Stability
