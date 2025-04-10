@@ -207,7 +207,7 @@ export default function Camera() {
     await startCamera();
   };
   return (
-    <div className="h-screen w-screen flex items-center justify-center bg-black overflow-hidden">
+    <div className="fixed inset-0 flex items-center justify-center bg-black">
       {/* Error message display - emoji only */}
       {error && (
         <div className="absolute top-0 left-0 right-0 z-50 bg-red-500 p-2 text-center">
@@ -222,16 +222,19 @@ export default function Camera() {
         </div>
       )}
       
-      <div className="relative w-full h-full max-h-screen">
+      {/* Canvas container - optimized for fullscreen display while maintaining aspect ratio */}
+      <div className="absolute inset-0 flex items-center justify-center">
         {photo ? (
           /* Photo view (after capture) - maximized with emoji controls */
           <>
-            {/* Captured photo - fullscreen */}
-            <img 
-              src={photo} 
-              alt="Captured photo"
-              className="w-full h-full object-contain" 
-            />
+            {/* Captured photo - fullscreen canvas */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <img 
+                src={photo} 
+                alt="Captured photo"
+                className="max-h-full max-w-full w-auto h-auto object-contain" 
+              />
+            </div>
             
             {/* Emoji controls overlay - centered and larger */}
             <div className="absolute bottom-12 left-0 right-0 flex justify-center space-x-20 z-20">
@@ -259,14 +262,14 @@ export default function Camera() {
         ) : (
           /* Camera view (before capture) - maximized with emoji controls */
           <>
-            {/* Video element - fullscreen */}
-            <div className="relative w-full h-full flex items-center justify-center">
+            {/* Video element - fullscreen canvas */}
+            <div className="absolute inset-0 flex items-center justify-center">
               <video
                 ref={videoRef}
                 autoPlay
                 playsInline
                 muted
-                className="absolute w-full h-full object-cover"
+                className="max-h-full max-w-full w-auto h-auto object-contain"
               />
               
               {/* Camera overlay status - minimal */}
@@ -275,23 +278,23 @@ export default function Camera() {
                   <div className="w-12 h-12 border-t-3 border-b-3 border-white rounded-full animate-spin"></div>
                 </div>
               )}
-              
-              {/* Take photo emoji button - using 🆕 as requested */}
-              <button
-                onClick={takePhoto}
-                disabled={loading || !cameraReady}
-                className={`absolute bottom-12 w-24 h-24 flex items-center justify-center text-6xl rounded-full z-20 shadow-lg ${
-                  loading || !cameraReady 
-                    ? 'bg-gray-800 bg-opacity-50 text-gray-400' 
-                    : 'bg-black bg-opacity-60 hover:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-white transition-all'
-                }`}
-                aria-label="Take photo"
-              >
-                {loading ? 
-                  <div className="w-12 h-12 border-t-2 border-b-2 border-white rounded-full animate-spin"></div> : 
-                  '🆕'}
-              </button>
             </div>
+            
+            {/* Take photo emoji button - using 🆕 as requested */}
+            <button
+              onClick={takePhoto}
+              disabled={loading || !cameraReady}
+              className={`absolute bottom-12 w-24 h-24 flex items-center justify-center text-6xl rounded-full z-20 shadow-lg ${
+                loading || !cameraReady 
+                  ? 'bg-gray-800 bg-opacity-50 text-gray-400' 
+                  : 'bg-black bg-opacity-60 hover:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-white transition-all'
+              }`}
+              aria-label="Take photo"
+            >
+              {loading ? 
+                <div className="w-12 h-12 border-t-2 border-b-2 border-white rounded-full animate-spin"></div> : 
+                '🆕'}
+            </button>
           </>
         )}
       </div>
