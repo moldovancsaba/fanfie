@@ -44,28 +44,53 @@ export async function POST(request: NextRequest) {
     if (image.size > MAX_FILE_SIZE) return errorResponses.fileTooLarge()
     if (!image.type.startsWith('image/')) return errorResponses.invalidType()
 
+    // Read the image data
+    const buffer = Buffer.from(await image.arrayBuffer())
+
     // Sanitize EXIF data and format
-    const cleanBuffer = await sharp(await image.arrayBuffer())
+    const cleanBuffer = await sharp(buffer)
       .withMetadata({ orientation: undefined })
+      .jpeg({ quality: 85 })
       .toBuffer()
 
-    // Create new form payload
-    const uploadForm = new FormData()
-    uploadForm.append('image', new Blob([cleanBuffer], { type: image.type }))
+    // Convert buffer to base64 for ImgBB
+    const base64Image = cleanBuffer.toString('base64')
 
+    // Create the form data with base64 image
+    const uploadForm = new URLSearchParams()
+    uploadForm.append('image', base64Image)
+
+    // Upload to ImgBB
     const response = await fetch(
       `https://api.imgbb.com/1/upload?key=${apiKey}`,
-      { method: 'POST', body: uploadForm }
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: uploadForm
+      }
     )
     
     const data = await response.json()
+    console.log('ImgBB Response:', data) // For debugging
     
-    return response.ok 
-      ? NextResponse.json(data)
-      : NextResponse.json(
-          { error: data.error?.message || 'Upload failed' }, 
-          { status: response.status }
-        )
+    if (!response.ok) {
+      console.error('ImgBB Error:', data)
+      return NextResponse.json(
+        { error: data.error?.message || 'Upload failed' },
+        { status: response.status }
+      )
+    }
+
+    return NextResponse.json({ 
+      success: true,
+      data: {
+        display_url: data.data?.display_url,
+        url: data.data?.url,
+        delete_url: data.data?.delete_url
+      }
+    })
 
   } catch (error) {
     console.error('[IMG_UPLOAD_ERROR]:', error)
