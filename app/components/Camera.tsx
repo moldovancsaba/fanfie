@@ -1,37 +1,53 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 export default function Camera() {
+  const videoRef = useRef<HTMLVideoElement>(null)
   const [photo, setPhoto] = useState<string | null>(null)
 
-  // Take photo using browser camera
-  const takePhoto = async () => {
+  // Start camera on component mount
+  useEffect(() => {
+    startCamera()
+    // Cleanup camera on unmount
+    return () => {
+      if (videoRef.current?.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream
+        stream.getTracks().forEach(track => track.stop())
+      }
+    }
+  }, [])
+
+  // Start camera stream
+  const startCamera = async () => {
     try {
-      // Get camera stream
       const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-      
-      // Create video element
-      const video = document.createElement('video')
-      video.srcObject = stream
-      await video.play()
-
-      // Create canvas and capture frame
-      const canvas = document.createElement('canvas')
-      canvas.width = video.videoWidth
-      canvas.height = video.videoHeight
-      const ctx = canvas.getContext('2d')
-      ctx?.drawImage(video, 0, 0)
-
-      // Convert to base64
-      const base64 = canvas.toDataURL('image/jpeg')
-      setPhoto(base64)
-
-      // Stop camera
-      stream.getTracks().forEach(track => track.stop())
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+      }
     } catch (err) {
       console.error('Camera error:', err)
       alert('Could not access camera')
+    }
+  }
+
+  // Take photo from video stream
+  const takePhoto = () => {
+    if (!videoRef.current) return
+
+    const canvas = document.createElement('canvas')
+    canvas.width = videoRef.current.videoWidth
+    canvas.height = videoRef.current.videoHeight
+    const ctx = canvas.getContext('2d')
+    if (ctx) {
+      ctx.drawImage(videoRef.current, 0, 0)
+      setPhoto(canvas.toDataURL())
+    }
+
+    // Stop camera after taking photo
+    if (videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream
+      stream.getTracks().forEach(track => track.stop())
     }
   }
 
@@ -68,6 +84,12 @@ export default function Camera() {
     }
   }
 
+  // Handle retake - restart camera
+  const retake = () => {
+    setPhoto(null)
+    startCamera()
+  }
+
   return (
     <div className="flex flex-col items-center gap-4">
       {photo ? (
@@ -79,7 +101,7 @@ export default function Camera() {
           />
           <div className="flex gap-4 w-full">
             <button
-              onClick={() => setPhoto(null)}
+              onClick={retake}
               className="flex-1 bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"
             >
               Retake
@@ -93,12 +115,20 @@ export default function Camera() {
           </div>
         </>
       ) : (
-        <button
-          onClick={takePhoto}
-          className="w-full bg-green-500 text-white py-3 px-6 rounded-lg hover:bg-green-600 font-medium"
-        >
-          Take Photo
-        </button>
+        <>
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            className="w-full rounded-lg shadow-lg mb-4"
+          />
+          <button
+            onClick={takePhoto}
+            className="w-full bg-green-500 text-white py-3 px-6 rounded-lg hover:bg-green-600 font-medium"
+          >
+            Take Photo
+          </button>
+        </>
       )}
     </div>
   )
