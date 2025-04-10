@@ -31,8 +31,6 @@ const errorResponses = {
  * @returns NextResponse with upload result or error
  */
 export async function POST(request: NextRequest) {
-  console.log('Upload request received')
-  
   try {
     const apiKey = process.env.IMGBB_API_KEY
     if (!apiKey) {
@@ -57,35 +55,20 @@ export async function POST(request: NextRequest) {
       return errorResponses.invalidType()
     }
 
-    // Convert image to base64
-    const base64Image = await new Promise<string>((resolve) => {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        const base64String = reader.result as string
-        const base64WithoutHeader = base64String.split(',')[1]
-        resolve(base64WithoutHeader)
-      }
-      reader.readAsDataURL(image)
-    })
-
-    // Create the form data for ImgBB
-    const uploadForm = new URLSearchParams()
-    uploadForm.append('image', base64Image)
+    // Get image data directly from the client's formData
+    const imgbbForm = new FormData()
+    imgbbForm.append('image', image)
 
     // Upload to ImgBB
     const response = await fetch(
       `https://api.imgbb.com/1/upload?key=${apiKey}`,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: uploadForm
+        body: imgbbForm
       }
     )
     
     const data = await response.json()
-    console.log('ImgBB response status:', response.status)
     
     if (!response.ok) {
       console.error('ImgBB error response:', data)
@@ -99,8 +82,6 @@ export async function POST(request: NextRequest) {
       console.error('No URL in ImgBB response')
       return errorResponses.serverError()
     }
-
-    console.log('Upload successful')
     
     return NextResponse.json({ 
       success: true,
