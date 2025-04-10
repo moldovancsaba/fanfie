@@ -1,41 +1,16 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import CameraComponent from './components/Camera/CameraComponent';
+import Camera from './components/Camera'
 
 export default function Home() {
-  const [photo, setPhoto] = useState<string | null>(null);
-
-  const handleCapture = (imageData: string) => {
-    setPhoto(imageData);
-  };
-
-  const handleError = (error: Error) => {
-    console.error('Camera error:', error);
-  };
-
   return (
-    <main className="min-h-screen p-8">
-      <div className="max-w-lg mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-center">Camera Test</h1>
-        
-        {photo ? (
-          <div className="space-y-4">
-            <img src={photo} alt="Captured" className="rounded-lg shadow-lg" />
-            <button
-              onClick={() => setPhoto(null)}
-              className="w-full py-2 bg-blue-500 text-white rounded-lg"
-            >
-              Take Another
-            </button>
-          </div>
-        ) : (
-          <CameraComponent
-            onCapture={handleCapture}
-            onError={handleError}
-          />
-        )}
+    <main className="min-h-screen bg-gray-100 p-4">
+      <div className="max-w-lg mx-auto bg-white rounded-lg shadow-lg p-6">
+        <h1 className="text-2xl font-bold text-center mb-6">
+          Take & Upload Photo
+        </h1>
+        <Camera />
       </div>
     </main>
-  );
+  )
 }
