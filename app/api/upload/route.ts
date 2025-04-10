@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData()
     const image = formData.get('image')
-    console.log('Received image:', image instanceof Blob, image?.type, image?.size)
+    console.log('Received image:', image instanceof Blob, image?.type)
 
     // Validate payload
     if (!(image instanceof Blob)) {
@@ -62,20 +62,11 @@ export async function POST(request: NextRequest) {
 
     console.log('Image validation passed')
 
-    // Read the image data
-    const buffer = Buffer.from(await image.arrayBuffer())
-    console.log('Image buffer created:', buffer.length, 'bytes')
-
-    // Sanitize EXIF data and format
-    const cleanBuffer = await sharp(buffer)
-      .jpeg({ quality: 85 })
-      .withMetadata({ orientation: undefined })
-      .toBuffer()
-    console.log('Image processed with sharp:', cleanBuffer.length, 'bytes')
-
-    // Convert buffer to base64
-    const base64Image = cleanBuffer.toString('base64')
-    console.log('Converted to base64, length:', base64Image.length)
+    // Convert image to base64
+    const arrayBuffer = await image.arrayBuffer()
+    const uint8Array = new Uint8Array(arrayBuffer)
+    const base64Image = btoa(String.fromCharCode.apply(null, [...uint8Array]))
+    console.log('Converted to base64')
 
     // Create the form data for ImgBB
     const uploadForm = new URLSearchParams()
