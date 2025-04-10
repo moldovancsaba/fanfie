@@ -206,155 +206,95 @@ export default function Camera() {
     // Restart camera
     await startCamera();
   };
-
   return (
-    <div className="flex flex-col items-center gap-4">
-      {/* Error message display */}
+    <div className="h-screen w-screen flex items-center justify-center bg-black overflow-hidden">
+      {/* Error message display - emoji only */}
       {error && (
-        <div className="w-full bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-          <strong className="font-bold">Error: </strong>
-          <span className="block sm:inline">{error}</span>
+        <div className="absolute top-0 left-0 right-0 z-50 bg-red-500 p-2 text-center">
+          ❌
         </div>
       )}
       
-      {/* Loading indicator */}
+      {/* Loading indicator - minimal version */}
       {loading && (
-        <div className="flex items-center justify-center w-full h-64 bg-gray-100 rounded-lg">
-          <div className="flex flex-col items-center">
-            <div className="w-12 h-12 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mb-3"></div>
-            <p className="text-gray-600">Loading camera with optimal quality settings...</p>
-          </div>
+        <div className="absolute inset-0 flex items-center justify-center z-40 bg-black bg-opacity-75">
+          <div className="w-16 h-16 border-t-4 border-b-4 border-white rounded-full animate-spin"></div>
         </div>
       )}
       
-      {/* Photo view (after capture) */}
-      {photo ? (
-        <div className="w-full">
-          {/* Captured photo */}
-          <img 
-            src={photo} 
-            alt="Captured photo" 
-            className="w-full rounded-lg shadow-lg mb-2"
-          />
-          
-          {/* Photo quality indicator */}
-          {photoQuality && (
-            <div className="bg-gray-100 p-3 rounded-lg mb-4">
-              <div className="flex justify-between items-center mb-2">
-                <div className="text-sm font-semibold">
-                  {photoQuality.resolution} • {photoQuality.level} Quality
-                </div>
-                <div className="text-xs text-gray-500">
-                  Quality Score: {photoQuality.score}/100
-                </div>
-              </div>
-              
-              {/* Quality bar */}
-              <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-                <div 
-                  className={`h-2.5 rounded-full ${
-                    photoQuality.score >= 80 ? 'bg-green-600' : 
-                    photoQuality.score >= 60 ? 'bg-green-500' : 
-                    photoQuality.score >= 40 ? 'bg-yellow-500' : 
-                    'bg-red-500'
-                  }`}
-                  style={{ width: `${photoQuality.score}%` }}
-                ></div>
-              </div>
-              
-              {/* Quality details (collapsible) */}
-              <details className="text-xs text-gray-600 mt-1">
-                <summary className="cursor-pointer">Quality details</summary>
-                <ul className="pl-5 mt-2 list-disc">
-                  {photoQuality.details.map((detail, index) => (
-                    <li key={index}>{detail}</li>
-                  ))}
-                </ul>
-              </details>
-            </div>
-          )}
-          
-          {/* Action buttons */}
-          <div className="flex gap-4">
-            <button
-              onClick={retake}
-              className="flex-1 bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 transition-colors duration-200"
-              disabled={loading}
-            >
-              Retake
-            </button>
-            <button
-              onClick={uploadPhoto}
-              className="flex-1 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors duration-200"
-              disabled={loading}
-            >
-              {loading ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Uploading...
-                </span>
-              ) : 'Upload'}
-            </button>
-          </div>
-        </div>
-      ) : (
-        <>
-          {/* Camera view (before capture) */}
-          <div className="relative w-full">
-            {/* Video element */}
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className="w-full rounded-lg shadow-lg mb-2"
+      <div className="relative w-full h-full max-h-screen">
+        {photo ? (
+          /* Photo view (after capture) - maximized with emoji controls */
+          <>
+            {/* Captured photo - fullscreen */}
+            <img 
+              src={photo} 
+              alt="Captured photo"
+              className="w-full h-full object-contain" 
             />
             
-            {/* Camera overlay status */}
-            {!loading && !cameraReady && (
-              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
-                <div className="text-white text-center p-4">
-                  <p>Initializing camera...</p>
-                  <div className="w-8 h-8 border-t-2 border-b-2 border-white rounded-full animate-spin mx-auto mt-2"></div>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {/* Quality information */}
-          {qualityInfo && (
-            <div className="w-full px-2 py-2 bg-gray-100 rounded-lg text-xs text-gray-700 mb-3">
-              <div className="flex justify-between items-center">
-                <div>📷 {qualityMessage}</div>
-                <div className={`px-2 py-0.5 rounded-full text-white text-xs font-semibold ${
-                  qualityInfo.actualResolution.width >= 1920 ? 'bg-green-500' : 
-                  qualityInfo.actualResolution.width >= 1280 ? 'bg-blue-500' : 
-                  'bg-yellow-500'
-                }`}>
-                  {qualityInfo.actualResolution.width >= 1920 ? 'HD+' : 
-                   qualityInfo.actualResolution.width >= 1280 ? 'HD' : 'SD'}
-                </div>
-              </div>
+            {/* Emoji controls overlay - centered and larger */}
+            <div className="absolute bottom-12 left-0 right-0 flex justify-center space-x-20 z-20">
+              <button
+                onClick={retake}
+                className="w-20 h-20 flex items-center justify-center text-5xl bg-black bg-opacity-60 rounded-full hover:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-white transition-all shadow-lg"
+                disabled={loading}
+                aria-label="Retake photo"
+              >
+                🔄
+              </button>
+              
+              <button
+                onClick={uploadPhoto}
+                className="w-20 h-20 flex items-center justify-center text-5xl bg-black bg-opacity-60 rounded-full hover:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-white transition-all shadow-lg"
+                disabled={loading}
+                aria-label="Upload photo"
+              >
+                {loading ? 
+                  <div className="w-10 h-10 border-t-2 border-b-2 border-white rounded-full animate-spin"></div> : 
+                  '⬆️'}
+              </button>
             </div>
-          )}
-          
-          {/* Camera controls */}
-          <button
-            onClick={takePhoto}
-            disabled={loading || !cameraReady}
-            className={`w-full py-3 px-6 rounded-lg font-medium transition-colors duration-200 ${
-              loading || !cameraReady 
-                ? 'bg-gray-400 cursor-not-allowed text-gray-200' 
-                : 'bg-green-500 hover:bg-green-600 text-white'
-            }`}
-          >
-            {loading ? 'Initializing Camera...' : !cameraReady ? 'Camera Preparing...' : 'Take Photo'}
-          </button>
-        </>
-      )}
+          </>
+        ) : (
+          /* Camera view (before capture) - maximized with emoji controls */
+          <>
+            {/* Video element - fullscreen */}
+            <div className="relative w-full h-full flex items-center justify-center">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="absolute w-full h-full object-cover"
+              />
+              
+              {/* Camera overlay status - minimal */}
+              {!loading && !cameraReady && (
+                <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center z-10">
+                  <div className="w-12 h-12 border-t-3 border-b-3 border-white rounded-full animate-spin"></div>
+                </div>
+              )}
+              
+              {/* Take photo emoji button - using 🆕 as requested */}
+              <button
+                onClick={takePhoto}
+                disabled={loading || !cameraReady}
+                className={`absolute bottom-12 w-24 h-24 flex items-center justify-center text-6xl rounded-full z-20 shadow-lg ${
+                  loading || !cameraReady 
+                    ? 'bg-gray-800 bg-opacity-50 text-gray-400' 
+                    : 'bg-black bg-opacity-60 hover:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-white transition-all'
+                }`}
+                aria-label="Take photo"
+              >
+                {loading ? 
+                  <div className="w-12 h-12 border-t-2 border-b-2 border-white rounded-full animate-spin"></div> : 
+                  '🆕'}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
