@@ -1,9 +1,7 @@
-
 "use client"
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { toast } from 'react-hot-toast'
-
 
 function dataURLtoBlob(dataurl: string) {
   const arr = dataurl.split(',')
@@ -16,72 +14,133 @@ function dataURLtoBlob(dataurl: string) {
 }
 
 export default function Camera() {
-  const [imageData, setImageData] = useState&lt;string|null&gt;(null)
-  const [uploadUrl, setUploadUrl] = useState&lt;string&gt;('')
-
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [imageData, setImageData] = useState<string | null>(null)
+  const [uploadUrl, setUploadUrl] = useState<string>('')
+  const [isStreaming, setIsStreaming] = useState(false)
 
   const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+
+  useEffect(() => {
+    async function setupCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: 'user' }
+        })
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream
+          setIsStreaming(true)
+        }
+      } catch (error) {
+        console.error('Camera access error:', error)
+        toast.error('Unable to access camera')
+      }
+    }
+
+    setupCamera()
+    return () => {
+      if (videoRef.current?.srcObject) {
+        const tracks = (videoRef.current.srcObject as MediaStream).getTracks()
+        tracks.forEach(track => track.stop())
+      }
+    }
+  }, [])
+
+  const captureImage = () => {
+    if (!videoRef.current) return
+
+    const canvas = document.createElement('canvas')
+    canvas.width = videoRef.current.videoWidth
+    canvas.height = videoRef.current.videoHeight
+    
+    const context = canvas.getContext('2d')
+    if (!context) return
+
+    context.drawImage(videoRef.current, 0, 0)
+    const dataUrl = canvas.toDataURL('image/jpeg')
+    setImageData(dataUrl)
+  }
 
   const handleUpload = async () => {
     if (!imageData) return
     
     try {
-    const blob = dataURLtoBlob(imageData)
-    
-    if (blob.size > MAX_FILE_SIZE) {
-      toast.error('File exceeds 5MB limit')
-      return
+      const blob = dataURLtoBlob(imageData)
+      
+      if (blob.size > MAX_FILE_SIZE) {
+        toast.error('File exceeds 5MB limit')
+        return
+      }
+      
+      const formData = new FormData()
+      formData.append('image', blob)
+      
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Upload failed')
+      }
+      
+      const result = await response.json()
+      if (result.success) {
+        toast.success('Image uploaded successfully!')
+        setUploadUrl(result.data.url)
+      } else {
+        throw new Error(result.error?.message || 'Unknown error')
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Upload failed')
     }
-    
-    const formData = new FormData()
-    formData.append('image', blob)
-    
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData
-    })
-    
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || 'Upload failed')
-    }
-    
-    const result = await response.json()
-    if (result.success) {
-      toast.success('Image uploaded successfully!')
-      setUploadUrl(result.data.url)
-    } else {
-      throw new Error(result.error?.message || 'Unknown error')
-    }
-    
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || 'Upload failed')
-    }
+  }
 
-    const result = await response.json()
-    if (result.success) {
-      toast.success('Image uploaded successfully!')
-      setUploadUrl(result.data.url)
-    } else {
-      throw new Error(result.error?.message || 'Unknown error')
-    }
-      {imageData &amp;&amp; (
-        &lt;div className="upload-section"&gt;
-          &lt;button 
-            onClick={handleUpload}
-            className="bg-blue-500 text-white p-2 rounded"
-          &gt;
-            Upload to ImgBB
-          &lt;/button&gt;
-          {uploadUrl &amp;&amp; (
-            &lt;p className="mt-2 text-sm"&gt;
-              Uploaded: &lt;a href={uploadUrl} target="_blank"&gt;{uploadUrl}&lt;/a&gt;
-            &lt;/p&gt;
+  const retake = () => {
+    setImageData(null)
+    setUploadUrl('')
+  }
+
+  return (
+    <div className="camera-container">
+      {!imageData ? (
+        <>
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            className="camera-preview"
+          />
+          <button
+            onClick={captureImage}
+            disabled={!isStreaming}
+            className="capture-button"
+          >
+            Take Photo
+          </button>
+        </>
+      ) : (
+        <div className="preview-container">
+          <img src={imageData} alt="Captured" className="captured-image" />
+          <div className="button-group">
+            <button onClick={retake} className="retake-button">
+              Retake
+            </button>
+            <button onClick={handleUpload} className="upload-button">
+              Upload
+            </button>
+          </div>
+          {uploadUrl && (
+            <div className="upload-success">
+              <p>Uploaded successfully!</p>
+              <a href={uploadUrl} target="_blank" rel="noopener noreferrer">
+                View Image
+              </a>
+            </div>
           )}
-        &lt;/div&gt;
+        </div>
       )}
-    &lt;/div&gt;
+    </div>
   )
 }
-
