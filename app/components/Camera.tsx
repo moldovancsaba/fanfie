@@ -103,44 +103,61 @@ export default function Camera() {
   }
 
   return (
-    <div className="camera-container">
-      {!imageData ? (
-        <>
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            className="camera-preview"
-          />
-          <button
-            onClick={captureImage}
-            disabled={!isStreaming}
-            className="capture-button"
-          >
-            Take Photo
-          </button>
-        </>
-      ) : (
-        <div className="preview-container">
-          <img src={imageData} alt="Captured" className="captured-image" />
-          <div className="button-group">
-            <button onClick={retake} className="retake-button">
-              Retake
-            </button>
-            <button onClick={handleUpload} className="upload-button">
-              Upload
-            </button>
-          </div>
-          {uploadUrl && (
-            <div className="upload-success">
-              <p>Uploaded successfully!</p>
-              <a href={uploadUrl} target="_blank" rel="noopener noreferrer">
-                View Image
-              </a>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+      <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+        {!imageData ? (
+          <>
+            <div className="relative aspect-video rounded-lg overflow-hidden mb-4">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                className="w-full h-full object-cover"
+              />
             </div>
-          )}
-        </div>
-      )}
+            <button
+              onClick={captureImage}
+              disabled={!isStreaming}
+              className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            >
+              {isStreaming ? 'Take Photo' : 'Accessing Camera...'}
+            </button>
+          </>
+        ) : (
+          <div className="space-y-4">
+            <div className="relative aspect-video rounded-lg overflow-hidden">
+              <img src={imageData} alt="Captured" className="w-full h-full object-cover" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={retake}
+                className="py-2 px-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Retake
+              </button>
+              <button
+                onClick={handleUpload}
+                className="py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Upload
+              </button>
+            </div>
+            {uploadUrl && (
+              <div className="mt-4 p-4 bg-green-50 rounded-lg">
+                <p className="text-green-700 font-medium mb-2">Uploaded successfully!</p>
+                <a
+                  href={uploadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline break-all"
+                >
+                  View Image
+                </a>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
