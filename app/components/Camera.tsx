@@ -86,9 +86,9 @@ export default function Camera() {
       }
       
       const result = await response.json()
-      if (result.success) {
+      if (result.data?.display_url) {
         toast.success('Image uploaded successfully!')
-        setUploadUrl(result.data.url)
+        setUploadUrl(result.data.display_url)
       } else {
         throw new Error(result.error?.message || 'Unknown error')
       }
