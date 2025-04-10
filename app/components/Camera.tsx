@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from 'react'
-import { toast } from 'react-hot-toast'
+import { toast, Toaster } from 'react-hot-toast'
 
 function dataURLtoBlob(dataurl: string) {
   const arr = dataurl.split(',')
@@ -18,6 +18,7 @@ export default function Camera() {
   const [imageData, setImageData] = useState<string | null>(null)
   const [uploadUrl, setUploadUrl] = useState<string>('')
   const [isStreaming, setIsStreaming] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
 
   const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
@@ -59,12 +60,14 @@ export default function Camera() {
     context.drawImage(videoRef.current, 0, 0)
     const dataUrl = canvas.toDataURL('image/jpeg')
     setImageData(dataUrl)
+    toast.success('Photo captured! Ready to upload.')
   }
 
   const handleUpload = async () => {
     if (!imageData) return
     
     try {
+      setIsUploading(true)
       const blob = dataURLtoBlob(imageData)
       
       if (blob.size > MAX_FILE_SIZE) {
@@ -75,25 +78,32 @@ export default function Camera() {
       const formData = new FormData()
       formData.append('image', blob)
       
+      toast.loading('Uploading image...')
       const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData
       })
       
+      const result = await response.json()
+      console.log('Upload response:', result) // Debug log
+      
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Upload failed')
+        throw new Error(result.error || 'Upload failed')
       }
       
-      const result = await response.json()
       if (result.data?.display_url) {
+        toast.dismiss()
         toast.success('Image uploaded successfully!')
         setUploadUrl(result.data.display_url)
       } else {
-        throw new Error(result.error?.message || 'Unknown error')
+        throw new Error('No image URL received')
       }
     } catch (error) {
+      console.error('Upload error:', error)
+      toast.dismiss()
       toast.error(error instanceof Error ? error.message : 'Upload failed')
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -104,6 +114,7 @@ export default function Camera() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+      <Toaster position="top-center" />
       <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
         {!imageData ? (
           <>
@@ -131,15 +142,25 @@ export default function Camera() {
             <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={retake}
-                className="py-2 px-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                disabled={isUploading}
+                className="py-2 px-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-500 transition-colors"
               >
                 Retake
               </button>
               <button
                 onClick={handleUpload}
-                className="py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                disabled={isUploading}
+                className="py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors flex items-center justify-center"
               >
-                Upload
+                {isUploading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Uploading...
+                  </>
+                ) : 'Upload'}
               </button>
             </div>
             {uploadUrl && (
