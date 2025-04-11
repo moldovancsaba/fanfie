@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import CameraComponent from './components/Camera/CameraComponent';
 import toast from 'react-hot-toast';
 
@@ -12,9 +12,9 @@ interface ImageDimensions {
 export default function Home() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [imageDimensions, setImageDimensions] = useState<ImageDimensions | null>(null);
+  const [displayStyle, setDisplayStyle] = useState({});
 
   const handleCapture = useCallback((imageData: string) => {
-    // Create a temporary image to get dimensions
     const img = new Image();
     img.onload = () => {
       setImageDimensions({
@@ -36,30 +36,39 @@ export default function Home() {
     setImageDimensions(null);
   }, []);
 
-  // Calculate image display dimensions
-  const getImageStyle = useCallback(() => {
-    if (!imageDimensions) return {};
+  // Update display style whenever window size or image dimensions change
+  useEffect(() => {
+    function updateImageStyle() {
+      if (!imageDimensions) return;
 
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight - 120; // Account for UI elements
-    const imageAspectRatio = imageDimensions.width / imageDimensions.height;
-    const windowAspectRatio = windowWidth / windowHeight;
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+      const imageAspectRatio = imageDimensions.width / imageDimensions.height;
+      const windowAspectRatio = windowWidth / windowHeight;
 
-    if (imageAspectRatio > windowAspectRatio) {
-      // Image is wider than window (relative to aspect ratios)
-      return {
-        width: '100vw',
-        height: `${100 / imageAspectRatio}vw`,
-        maxHeight: '100vh'
-      };
-    } else {
-      // Image is taller than window (relative to aspect ratios)
-      return {
-        width: `${imageAspectRatio * 100}vh`,
-        height: '100vh',
-        maxWidth: '100vw'
-      };
+      let width, height;
+
+      if (imageAspectRatio > windowAspectRatio) {
+        // Image is wider than window relative to aspect ratios
+        height = windowHeight;
+        width = windowHeight * imageAspectRatio;
+      } else {
+        // Image is taller than window relative to aspect ratios
+        width = windowWidth;
+        height = windowWidth / imageAspectRatio;
+      }
+
+      setDisplayStyle({
+        width: `${width}px`,
+        height: `${height}px`,
+        maxWidth: '100vw',
+        maxHeight: '100vh',
+      });
     }
+
+    updateImageStyle();
+    window.addEventListener('resize', updateImageStyle);
+    return () => window.removeEventListener('resize', updateImageStyle);
   }, [imageDimensions]);
 
   return (
@@ -72,24 +81,22 @@ export default function Home() {
         />
       ) : (
         <div className="fixed inset-0 flex items-center justify-center bg-black">
-          <div className="relative w-full h-full flex items-center justify-center">
-            <div 
-              className="relative overflow-hidden"
-              style={getImageStyle()}
-            >
-              <img 
-                src={capturedImage} 
-                alt="Captured"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-4 z-10">
-                <button
-                  onClick={handleRetake}
-                  className="px-6 py-3 bg-blue-500 text-white rounded-full text-lg shadow-lg hover:bg-blue-600 transition-colors"
-                >
-                  Retake Photo
-                </button>
-              </div>
+          <div 
+            className="relative overflow-hidden"
+            style={displayStyle}
+          >
+            <img 
+              src={capturedImage} 
+              alt="Captured"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-4 z-10">
+              <button
+                onClick={handleRetake}
+                className="px-6 py-3 bg-blue-500 text-white rounded-full text-lg shadow-lg hover:bg-blue-600 transition-colors"
+              >
+                Retake Photo
+              </button>
             </div>
           </div>
         </div>
