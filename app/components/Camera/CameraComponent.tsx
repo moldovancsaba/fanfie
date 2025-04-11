@@ -65,6 +65,12 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
     try {
       // Create a canvas to combine video frame and frame overlay
       const canvas = document.createElement('canvas');
+      const containerRect = containerRef.current?.getBoundingClientRect();
+      
+      if (!containerRect) {
+        throw new Error('Could not get container dimensions');
+      }
+
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
@@ -84,12 +90,11 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
         frameImage.src = 'https://i.ibb.co/mV2jdW46/SEYU-FRAME.png';
       });
 
-      // Calculate frame dimensions to maintain aspect ratio
+      // Calculate frame dimensions to match container while maintaining aspect ratio
       const frameAspectRatio = frameImage.width / frameImage.height;
       const canvasAspectRatio = canvas.width / canvas.height;
       
       let frameWidth, frameHeight;
-      
       if (frameAspectRatio > canvasAspectRatio) {
         frameWidth = canvas.width;
         frameHeight = canvas.width / frameAspectRatio;
@@ -98,7 +103,7 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
         frameWidth = canvas.height * frameAspectRatio;
       }
 
-      // Center the frame
+      // Calculate position to center the frame
       const x = (canvas.width - frameWidth) / 2;
       const y = (canvas.height - frameHeight) / 2;
 
