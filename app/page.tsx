@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import CameraComponent from './components/Camera/CameraComponent';
+import FrameOverlay from './components/Frame/FrameOverlay';
 import toast from 'react-hot-toast';
 
 export default function Home() {

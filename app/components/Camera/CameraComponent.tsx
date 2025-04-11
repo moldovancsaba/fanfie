@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { captureHighQualityPhoto } from '../../services/CameraQualityService';
+import FrameOverlay from '../Frame/FrameOverlay';
 
 interface CameraProps {
   onCapture: (imageData: string) => void;
@@ -12,6 +13,7 @@ interface CameraProps {
 export default function CameraComponent({ onCapture, onError, fitToScreen = true }: CameraProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const frameImageRef = useRef<HTMLImageElement>(null);
   const [isReady, setIsReady] = useState(false);
   const [videoDimensions, setVideoDimensions] = useState<{ width: number; height: number } | null>(null);
 
@@ -56,35 +58,59 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
     }
   }, []);
 
-  const handleCapture = useCallback(() => {
+  const handleCapture = useCallback(async () => {
     if (!videoRef.current || !isReady) return;
 
     const video = videoRef.current;
     
     try {
-      const { dataUrl } = captureHighQualityPhoto(video, {
-        format: 'jpeg',
-        quality: 0.95,
-        fitToScreen: fitToScreen
-      });
-      
-      onCapture(dataUrl);
-    } catch (error) {
-      console.error('Error capturing photo:', error);
-      
-      // Fallback to basic capture if the enhanced version fails
+      // Create a canvas to combine video frame and frame overlay
       const canvas = document.createElement('canvas');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
       
-      const context = canvas.getContext('2d');
-      if (!context) return;
+      if (!ctx) {
+        throw new Error('Could not get canvas context');
+      }
+
+      // Draw video frame
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Load and draw frame overlay
+      const frameImage = new Image();
+      await new Promise((resolve, reject) => {
+        frameImage.onload = resolve;
+        frameImage.onerror = reject;
+        frameImage.src = 'https://i.ibb.co/mV2jdW46/SEYU-FRAME.png';
+      });
+
+      // Draw frame maintaining aspect ratio
+      const frameAspectRatio = frameImage.width / frameImage.height;
+      const canvasAspectRatio = canvas.width / canvas.height;
       
-      context.drawImage(video, 0, 0);
-      const imageData = canvas.toDataURL('image/jpeg', 0.8);
-      onCapture(imageData);
+      let drawWidth = canvas.width;
+      let drawHeight = canvas.height;
+      
+      if (frameAspectRatio > canvasAspectRatio) {
+        drawHeight = canvas.width / frameAspectRatio;
+      } else {
+        drawWidth = canvas.height * frameAspectRatio;
+      }
+      
+      const x = (canvas.width - drawWidth) / 2;
+      const y = (canvas.height - drawHeight) / 2;
+      
+      ctx.drawImage(frameImage, x, y, drawWidth, drawHeight);
+
+      // Convert to data URL
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+      onCapture(dataUrl);
+    } catch (error) {
+      console.error('Error capturing photo:', error);
+      onError(error instanceof Error ? error : new Error('Failed to capture photo'));
     }
-  }, [isReady, onCapture, fitToScreen]);
+  }, [isReady, onCapture, onError]);
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black">
@@ -100,6 +126,7 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
           onLoadedMetadata={handleLoadedMetadata}
           className="absolute inset-0 w-full h-full object-cover"
         />
+        <FrameOverlay />
         {isReady && (
           <div 
             className="fixed left-0 right-0 mx-auto flex justify-center gap-4 z-50"

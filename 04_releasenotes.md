@@ -655,3 +655,57 @@ v1.3.2
 - Add button state transitions
 - Enhance visual feedback
 
+
+## v2.3.7 - Functionality Restoration with Improved Layout (2025-04-11)
+
+### Fixes
+- Restored working camera capture functionality
+- Fixed image upload process
+- Maintained improved button positioning
+- Ensured proper component interaction
+
+### Technical Improvements
+1. **Camera Component**
+   - Restored working capture implementation
+   - Fixed video stream handling
+   - Maintained proper event handling
+   - Improved error recovery
+
+2. **Button Layout**
+   - Maintained 10% bottom positioning
+   - Kept proper z-index layering
+   - Consistent button styling
+   - Improved visual hierarchy
+
+3. **Integration**
+   - Fixed capture-to-upload flow
+   - Restored share functionality
+   - Maintained state management
+   - Enhanced error handling
+
+### Implementation Details
+- Working camera capture and preview
+- Successful image upload to ImgBB
+- Proper share functionality
+- Improved UI positioning
+
+### Browser Support
+- Full support in modern browsers
+- Mobile-friendly implementation
+- Consistent cross-device behavior
+- Proper viewport handling
+
+### Deployment
+- Production URL: https://fanfie-edz4rmn7e-narimato.vercel.app
+- Release Date: 2025-04-11
+- Git Tag: v2.3.7
+
+### Known Limitations
+- None identified
+
+### Next Steps
+- Consider adding loading animations
+- Implement upload progress
+- Add transition effects
+- Enhance error feedback
+
