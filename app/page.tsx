@@ -82,7 +82,6 @@ export default function Home() {
     }
   }, [capturedImage]);
 
-  // Share functionality
   const handleShare = useCallback(async () => {
     if (!uploadedUrl) return;
 
@@ -104,7 +103,6 @@ export default function Home() {
     }
   }, [uploadedUrl]);
 
-  // Update display style whenever window size or image dimensions change
   useEffect(() => {
     function updateImageStyle() {
       if (!imageDimensions) return;
@@ -137,14 +135,31 @@ export default function Home() {
     return () => window.removeEventListener('resize', updateImageStyle);
   }, [imageDimensions]);
 
+  // Common button styles
+  const buttonContainerStyle = "fixed left-0 right-0 mx-auto flex justify-center gap-4 z-50";
+  const buttonStyle = "px-6 py-3 rounded-full text-lg shadow-lg transition-colors";
+
   return (
     <main className="min-h-screen w-full bg-black">
       {!capturedImage ? (
-        <CameraComponent 
-          onCapture={handleCapture}
-          onError={handleError}
-          fitToScreen={true}
-        />
+        <div className="relative w-full h-screen">
+          <CameraComponent 
+            onCapture={handleCapture}
+            onError={handleError}
+            fitToScreen={true}
+          />
+          <div 
+            className={buttonContainerStyle}
+            style={{ bottom: '10vh' }} // 10% up from bottom
+          >
+            <button
+              onClick={() => {}} // Camera capture handled in CameraComponent
+              className={`${buttonStyle} bg-blue-500 hover:bg-blue-600 text-white`}
+            >
+              Take Photo
+            </button>
+          </div>
+        </div>
       ) : (
         <div className="fixed inset-0 flex items-center justify-center bg-black">
           <div 
@@ -156,10 +171,13 @@ export default function Home() {
               alt="Captured"
               className="absolute inset-0 w-full h-full object-cover"
             />
-            <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-4 z-10">
+            <div 
+              className={buttonContainerStyle}
+              style={{ bottom: '10vh' }} // 10% up from bottom
+            >
               <button
                 onClick={handleRetake}
-                className="px-6 py-3 bg-blue-500 text-white rounded-full text-lg shadow-lg hover:bg-blue-600 transition-colors"
+                className={`${buttonStyle} bg-blue-500 hover:bg-blue-600 text-white`}
                 disabled={isUploading}
               >
                 Retake Photo
@@ -167,7 +185,7 @@ export default function Home() {
               {!uploadedUrl ? (
                 <button
                   onClick={handleUpload}
-                  className="px-6 py-3 bg-green-500 text-white rounded-full text-lg shadow-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`${buttonStyle} bg-green-500 hover:bg-green-600 text-white disabled:opacity-50 disabled:cursor-not-allowed`}
                   disabled={isUploading}
                 >
                   {isUploading ? 'Uploading...' : 'Upload Photo'}
@@ -175,7 +193,7 @@ export default function Home() {
               ) : (
                 <button
                   onClick={handleShare}
-                  className="px-6 py-3 bg-purple-500 text-white rounded-full text-lg shadow-lg hover:bg-purple-600 transition-colors"
+                  className={`${buttonStyle} bg-purple-500 hover:bg-purple-600 text-white`}
                 >
                   Share Photo
                 </button>

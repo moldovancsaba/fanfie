@@ -69,8 +69,8 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
       const container = containerRef.current;
 
       // Get window dimensions minus margins
-      const windowWidth = window.innerWidth - 32; // 16px margin each side
-      const windowHeight = window.innerHeight - 120; // Space for UI elements
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
       const windowAspectRatio = windowWidth / windowHeight;
 
       if (videoAspectRatio > windowAspectRatio) {
@@ -127,14 +127,10 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
   }, [isReady, onCapture, fitToScreen]);
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black">
+    <div className="fixed inset-0 bg-black">
       <div 
         ref={containerRef}
-        className="relative overflow-hidden flex items-center justify-center"
-        style={{
-          maxWidth: '100vw',
-          maxHeight: 'calc(100vh - 120px)', // Account for UI elements
-        }}
+        className="relative overflow-hidden flex items-center justify-center h-full"
       >
         <video
           ref={videoRef}
@@ -145,12 +141,17 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
           className="bg-black object-cover"
         />
         {isReady && (
-          <button
-            onClick={handleCapture}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 bg-blue-500 text-white rounded-full text-lg shadow-lg hover:bg-blue-600 transition-colors z-10"
+          <div 
+            className="fixed left-0 right-0 mx-auto flex justify-center gap-4 z-50"
+            style={{ bottom: '10vh' }} // 10% up from bottom
           >
-            Take Photo
-          </button>
+            <button
+              onClick={handleCapture}
+              className="px-6 py-3 bg-blue-500 text-white rounded-full text-lg shadow-lg hover:bg-blue-600 transition-colors"
+            >
+              Take Photo
+            </button>
+          </div>
         )}
       </div>
     </div>
