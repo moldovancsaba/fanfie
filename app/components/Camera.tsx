@@ -207,7 +207,7 @@ export default function Camera() {
     await startCamera();
   };
   return (
-    <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black">
+    <div className="fixed inset-0 w-screen h-screen max-h-screen max-w-screen overflow-hidden touch-none bg-black">
       {/* Error message display - emoji only */}
       {error && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-red-500 p-2 text-center">
@@ -222,19 +222,19 @@ export default function Camera() {
         </div>
       )}
       
-      {/* Main content area - full viewport canvas */}
+      {/* Main content area - full viewport canvas without overflow */}
       {photo ? (
         /* Photo view (after capture) */
-        <div className="w-screen h-screen flex items-center justify-center bg-black">
+        <div className="absolute inset-0 max-w-full max-h-full flex items-center justify-center bg-black overflow-hidden">
           {/* Captured photo - centered and maintaining aspect ratio */}
           <img 
             src={photo} 
             alt="Captured photo"
-            className="w-full h-full object-contain" 
+            className="max-w-full max-h-full object-contain" 
           />
           
           {/* Emoji controls overlay - centered at bottom */}
-          <div className="fixed bottom-10 left-0 right-0 flex justify-center items-center space-x-24 z-50">
+          <div className="fixed bottom-8 left-0 right-0 flex justify-center items-center space-x-24 z-50">
             <button
               onClick={retake}
               className="w-20 h-20 flex items-center justify-center text-5xl bg-black bg-opacity-60 rounded-full hover:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-white transition-all shadow-xl"
@@ -258,14 +258,14 @@ export default function Camera() {
         </div>
       ) : (
         /* Camera view (before capture) */
-        <div className="w-screen h-screen flex items-center justify-center bg-black">
+        <div className="absolute inset-0 max-w-full max-h-full flex items-center justify-center bg-black overflow-hidden">
           {/* Video element - centered and maintaining aspect ratio */}
           <video
             ref={videoRef}
             autoPlay
             playsInline
             muted
-            className="w-full h-full object-contain"
+            className="max-w-full max-h-full object-contain"
           />
           
           {/* Camera overlay status - minimal */}
