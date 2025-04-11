@@ -1106,3 +1106,70 @@ const loadImage = async (canvas: FabricCanvas, url: string): Promise<void> => {
    - Add gesture support for mobile devices
    - Improve error handling and recovery
 
+
+## Dynamic Fullscreen Camera Implementation (2025-04-11)
+
+### Technical Solutions
+1. **Viewport-Based Sizing**
+   - Use `vw` and `vh` units for true responsive sizing
+   - Calculate container dimensions based on aspect ratio
+   - Implement dynamic video scaling
+   - Handle window resize events efficiently
+
+2. **Aspect Ratio Handling**
+   ```typescript
+   if (videoAspectRatio > windowAspectRatio) {
+     // Video is wider than window
+     container.style.width = '100%';
+     container.style.height = `${100 / videoAspectRatio}vw`;
+   } else {
+     // Video is taller than window
+     container.style.width = `${videoAspectRatio * 100}vh`;
+     container.style.height = '100%';
+   }
+   ```
+
+3. **Layout Improvements**
+   - Fullscreen container with fixed positioning
+   - Centered content with flex layout
+   - Proper spacing for UI elements
+   - Clean preview display
+
+### Best Practices
+1. **Dynamic Sizing**
+   - Use viewport units for responsive dimensions
+   - Calculate sizes based on window dimensions
+   - Maintain aspect ratio during resizing
+   - Handle orientation changes properly
+
+2. **Performance**
+   - Efficient resize event handling
+   - Clean up event listeners
+   - Optimize calculations
+   - Smooth transitions
+
+3. **User Experience**
+   - Fullscreen immersive experience
+   - Proper button positioning
+   - Clear visual feedback
+   - Smooth transitions
+
+### Future Considerations
+1. **Enhancements**
+   - Add pinch-to-zoom support
+   - Implement drag to reposition
+   - Add rotation support
+   - Consider picture-in-picture mode
+
+2. **Performance Optimization**
+   - Debounce resize events
+   - Implement virtualization for preview
+   - Optimize canvas operations
+   - Add loading states
+
+3. **Browser Support**
+   - Test across different browsers
+   - Handle various aspect ratios
+   - Support different orientations
+   - Consider fallback options
+

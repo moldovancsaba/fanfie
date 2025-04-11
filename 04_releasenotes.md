@@ -376,3 +376,59 @@ v1.3.2
 - Enhance mobile gesture support
 - Add picture-in-picture mode support
 
+
+## v2.3.2 - Dynamic Fullscreen Camera (2025-04-11)
+
+### Features
+- Implemented true fullscreen camera experience
+- Added dynamic viewport-based sizing
+- Enhanced aspect ratio handling
+- Improved capture preview display
+
+### Technical Improvements
+1. **Viewport Utilization**
+   - Use viewport units (vw/vh) for responsive sizing
+   - Dynamic aspect ratio calculations
+   - Efficient window resize handling
+   - Proper container scaling
+
+2. **Layout Enhancement**
+   - Fullscreen container implementation
+   - Centered content positioning
+   - Improved UI element placement
+   - Better preview display
+
+3. **Performance**
+   - Optimized resize event handling
+   - Improved resource cleanup
+   - Enhanced rendering performance
+   - Better memory management
+
+### Implementation Details
+- Viewport-based container sizing
+- Dynamic video element scaling
+- Aspect ratio preservation logic
+- Responsive UI positioning
+
+### Browser Support
+- Tested across modern browsers
+- Mobile-friendly implementation
+- Orientation change support
+- Responsive design support
+
+### Deployment
+- Production URL: https://fanfie-4wggmlkvx-narimato.vercel.app
+- Release Date: 2025-04-11
+- Git Tag: v2.3.2
+
+### Known Limitations
+- Requires modern browser support
+- Performance depends on device capabilities
+- Some mobile browsers may have specific constraints
+
+### Next Steps
+- Add touch gesture support
+- Implement zoom functionality
+- Add rotation capabilities
+- Enhance preview controls
+
