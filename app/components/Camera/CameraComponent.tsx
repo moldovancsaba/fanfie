@@ -1,8 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { captureHighQualityPhoto } from '../../services/CameraQualityService';
-import FrameOverlay from '../Frame/FrameOverlay';
 
 interface CameraProps {
   onCapture: (imageData: string) => void;
@@ -12,10 +10,24 @@ interface CameraProps {
 
 export default function CameraComponent({ onCapture, onError, fitToScreen = true }: CameraProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isReady, setIsReady] = useState(false);
-  const [videoDimensions, setVideoDimensions] = useState<{ width: number; height: number } | null>(null);
+  const [frameImage, setFrameImage] = useState<HTMLImageElement | null>(null);
 
+  // Initialize frame image
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => {
+      setFrameImage(img);
+    };
+    img.onerror = (error) => {
+      console.error('Failed to load frame:', error);
+      onError(new Error('Failed to load frame overlay'));
+    };
+    img.src = 'https://i.ibb.co/mV2jdW46/SEYU-FRAME.png';
+  }, [onError]);
+
+  // Initialize camera
   useEffect(() => {
     async function startCamera() {
       try {
@@ -46,91 +58,85 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
     };
   }, [onError]);
 
+  // Draw frame on canvas
+  const drawFrame = useCallback(() => {
+    if (!canvasRef.current || !videoRef.current || !frameImage) return;
+
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
+    const video = videoRef.current;
+
+    // Set canvas size to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    // Draw video frame
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Calculate frame dimensions to maintain aspect ratio
+    const frameAspectRatio = frameImage.width / frameImage.height;
+    const canvasAspectRatio = canvas.width / canvas.height;
+    
+    let frameWidth, frameHeight;
+    if (frameAspectRatio > canvasAspectRatio) {
+      frameWidth = canvas.width;
+      frameHeight = canvas.width / frameAspectRatio;
+    } else {
+      frameHeight = canvas.height;
+      frameWidth = canvas.height * frameAspectRatio;
+    }
+
+    // Center the frame
+    const x = (canvas.width - frameWidth) / 2;
+    const y = (canvas.height - frameHeight) / 2;
+
+    // Draw frame overlay
+    context.drawImage(frameImage, x, y, frameWidth, frameHeight);
+
+    // Request next frame
+    requestAnimationFrame(drawFrame);
+  }, [frameImage]);
+
+  // Handle video metadata loaded
   const handleLoadedMetadata = useCallback(() => {
     if (videoRef.current) {
-      const video = videoRef.current;
-      setVideoDimensions({
-        width: video.videoWidth,
-        height: video.videoHeight
-      });
       setIsReady(true);
     }
   }, []);
 
-  const handleCapture = useCallback(async () => {
-    if (!videoRef.current || !isReady) return;
-
-    const video = videoRef.current;
-    
-    try {
-      // Create a canvas to combine video frame and frame overlay
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      
-      if (!ctx) {
-        throw new Error('Could not get canvas context');
-      }
-
-      // Draw video frame
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      // Load and draw frame overlay
-      const frameImage = new Image();
-      await new Promise((resolve, reject) => {
-        frameImage.onload = resolve;
-        frameImage.onerror = reject;
-        frameImage.src = 'https://i.ibb.co/mV2jdW46/SEYU-FRAME.png';
-      });
-
-      // Calculate dimensions to maintain aspect ratio
-      const frameAspectRatio = frameImage.width / frameImage.height;
-      const canvasAspectRatio = canvas.width / canvas.height;
-      
-      let frameWidth, frameHeight;
-      if (frameAspectRatio > canvasAspectRatio) {
-        frameWidth = canvas.width;
-        frameHeight = canvas.width / frameAspectRatio;
-      } else {
-        frameHeight = canvas.height;
-        frameWidth = canvas.height * frameAspectRatio;
-      }
-
-      // Center the frame
-      const x = (canvas.width - frameWidth) / 2;
-      const y = (canvas.height - frameHeight) / 2;
-
-      // Draw frame
-      ctx.drawImage(frameImage, x, y, frameWidth, frameHeight);
-
-      // Convert to data URL
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-      onCapture(dataUrl);
-    } catch (error) {
-      console.error('Error capturing photo:', error);
-      onError(error instanceof Error ? error : new Error('Failed to capture photo'));
+  // Start drawing when both video and frame are ready
+  useEffect(() => {
+    if (isReady && frameImage) {
+      drawFrame();
     }
-  }, [isReady, onCapture, onError]);
+  }, [isReady, frameImage, drawFrame]);
+
+  const handleCapture = useCallback(() => {
+    if (!canvasRef.current || !isReady || !frameImage) return;
+    
+    const canvas = canvasRef.current;
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+    onCapture(dataUrl);
+  }, [isReady, frameImage, onCapture]);
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black">
-      <div 
-        ref={containerRef}
-        className="relative w-full h-full overflow-hidden"
-      >
+      <div className="relative w-full h-full overflow-hidden">
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted
           onLoadedMetadata={handleLoadedMetadata}
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ zIndex: 1 }}
+          className="hidden"
         />
-        {/* Frame overlay is now explicitly placed above video */}
-        <FrameOverlay />
-        {isReady && (
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 w-full h-full object-contain"
+        />
+        {isReady && frameImage && (
           <div 
             className="fixed left-0 right-0 mx-auto flex justify-center gap-4"
             style={{ bottom: '10vh', zIndex: 2000 }}
