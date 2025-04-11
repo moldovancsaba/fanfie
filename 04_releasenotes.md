@@ -320,3 +320,59 @@ For upcoming releases, we plan to enhance Fanfie with:
 *Note: This release has been tested on multiple devices and browsers to ensure compatibility, but users are encouraged to report any issues they encounter.*
 
 v1.3.2
+
+## v2.3.1 - Enhanced Viewport Fitting (2025-04-11)
+
+### Features
+- Improved video element sizing with proper aspect ratio preservation
+- Enhanced viewport utilization while maintaining image quality
+- Better handling of different screen sizes and orientations
+- Smoother video scaling with high-quality settings
+
+### Technical Improvements
+- Implemented smart dimension calculation system
+- Added high-quality image smoothing
+- Enhanced canvas optimization for screen fitting
+- Improved video stream resource management
+
+### Implementation Details
+1. **Viewport Calculations**
+   - Dynamic viewport dimension detection
+   - Margin and UI element consideration
+   - Responsive container sizing
+   - Aspect ratio preservation
+
+2. **Quality Enhancements**
+   - High-quality image smoothing
+   - Improved canvas rendering
+   - Better video scaling
+   - Enhanced capture quality
+
+3. **Resource Management**
+   - Proper video stream cleanup
+   - Efficient event listener handling
+   - Improved memory management
+   - Better error recovery
+
+### Browser Support
+- Full support in modern browsers
+- Graceful degradation in older browsers
+- Mobile-friendly implementation
+- Orientation change support
+
+### Deployment
+- Production URL: https://fanfie-72bdar9gi-narimato.vercel.app
+- Release Date: 2025-04-11
+- Git Tag: v2.3.1
+
+### Known Limitations
+- Requires modern browser support for optimal quality
+- Performance may vary on low-end devices
+- Some mobile browsers may have specific constraints
+
+### Next Steps
+- Implement dynamic quality adjustment
+- Add custom cropping support
+- Enhance mobile gesture support
+- Add picture-in-picture mode support
+
