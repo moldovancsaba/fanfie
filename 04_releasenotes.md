@@ -926,3 +926,58 @@ v1.3.2
 - Enhance error recovery
 - Add performance monitoring
 
+
+## v2.3.12 - Canvas-Based Frame Composition (2025-04-11)
+
+### Features
+- Implemented canvas-based frame composition
+- Added real-time frame overlay rendering
+- Enhanced frame positioning and scaling
+- Improved state management
+
+### Technical Improvements
+1. **Canvas Implementation**
+   - Real-time video and frame composition
+   - Proper aspect ratio preservation
+   - Centered frame positioning
+   - Continuous frame rendering
+
+2. **Frame Management**
+   - Proper frame image loading
+   - Enhanced error handling
+   - State-based rendering
+   - Resource cleanup
+
+3. **Performance**
+   - Efficient canvas operations
+   - requestAnimationFrame usage
+   - Optimized rendering
+   - Resource management
+
+### Implementation Details
+- Canvas-based composition
+- Real-time frame overlay
+- State management system
+- Error handling implementation
+
+### Browser Support
+- Full support in modern browsers
+- Hardware acceleration where available
+- Mobile-friendly implementation
+- Consistent cross-device display
+
+### Deployment
+- Production URL: https://fanfie-qm7sm5yim-narimato.vercel.app
+- Release Date: 2025-04-11
+- Git Tag: v2.3.12
+
+### Known Limitations
+- Canvas operations are CPU-intensive
+- High-resolution frames may impact performance
+
+### Next Steps
+- Add frame transitions
+- Implement canvas buffering
+- Add performance optimizations
+- Enhance frame adjustments
+

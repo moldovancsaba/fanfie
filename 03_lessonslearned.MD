@@ -1810,3 +1810,97 @@ const loadImage = async (canvas: FabricCanvas, url: string): Promise<void> => {
    - Monitor load times
    - Track errors
 
+
+## Canvas-Based Frame Composition (2025-04-11)
+
+### Technical Solution
+1. **Real-time Composition**
+   ```typescript
+   // Draw video and frame on canvas
+   const drawFrame = useCallback(() => {
+     // Draw video frame
+     context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+     // Calculate frame dimensions
+     const frameAspectRatio = frameImage.width / frameImage.height;
+     const canvasAspectRatio = canvas.width / canvas.height;
+     
+     // Calculate frame positioning
+     const x = (canvas.width - frameWidth) / 2;
+     const y = (canvas.height - frameHeight) / 2;
+
+     // Draw frame overlay
+     context.drawImage(frameImage, x, y, frameWidth, frameHeight);
+
+     // Continue animation
+     requestAnimationFrame(drawFrame);
+   }, [frameImage]);
+   ```
+
+2. **Frame Loading**
+   ```typescript
+   // Initialize frame image
+   const img = new Image();
+   img.onload = () => {
+     setFrameImage(img);
+   };
+   img.src = 'frame-url.png';
+   ```
+
+3. **State Management**
+   ```typescript
+   const [isReady, setIsReady] = useState(false);
+   const [frameImage, setFrameImage] = useState<HTMLImageElement | null>(null);
+   ```
+
+### Implementation Insights
+1. **Canvas Usage**
+   - Real-time composition
+   - Proper aspect ratio handling
+   - Centered frame positioning
+   - Continuous rendering
+
+2. **Frame Management**
+   - Preload frame image
+   - Handle load errors
+   - Maintain state
+   - Proper cleanup
+
+3. **Performance**
+   - Use requestAnimationFrame
+   - Efficient drawing
+   - State-based rendering
+   - Resource cleanup
+
+### Best Practices
+1. **Canvas Operations**
+   - Context management
+   - Dimension calculations
+   - Proper scaling
+   - Center positioning
+
+2. **State Handling**
+   - Clear state management
+   - Proper initialization
+   - Error handling
+   - Resource cleanup
+
+3. **Performance**
+   - Efficient rendering
+   - State-based updates
+   - Memory management
+   - Resource optimization
+
+### Future Considerations
+1. **Enhancements**
+   - Add frame transitions
+   - Implement effects
+   - Add frame adjustments
+   - Enhance performance
+
+2. **Optimization**
+   - Canvas buffer management
+   - Frame caching
+   - Memory optimization
+   - Performance monitoring
+
