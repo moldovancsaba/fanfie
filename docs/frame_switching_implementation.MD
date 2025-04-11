@@ -187,3 +187,145 @@ height: 100%;
 6. Frame Effects
 7. Frame Animation
 
+
+## Frame-Driven Canvas Implementation (v2.3.18)
+
+### Core Concept
+The canvas size and aspect ratio are determined by the frame's dimensions, not the video feed. This ensures:
+1. Perfect frame alignment
+2. Consistent output dimensions
+3. Proper aspect ratio preservation
+
+### Technical Implementation
+
+#### 1. Frame Information Structure
+```typescript
+interface FrameInfo {
+  url: string;
+  width: number;
+  height: number;
+}
+```
+
+#### 2. Frame-First Loading
+```typescript
+const loadFrame = async (frameUrl: string) => {
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  
+  await new Promise((resolve) => {
+    img.onload = () => {
+      setCurrentFrame({
+        url: frameUrl,
+        width: img.naturalWidth,
+        height: img.naturalHeight
+      });
+      resolve(img);
+    };
+    img.src = frameUrl;
+  });
+};
+```
+
+#### 3. Container Sizing
+```typescript
+const containerStyle = {
+  width: '100%',
+  height: '100%',
+  maxWidth: `${currentFrame.width}px`,
+  maxHeight: `${currentFrame.height}px`,
+  aspectRatio: `${currentFrame.width}/${currentFrame.height}`,
+  position: 'relative',
+  overflow: 'hidden'
+};
+```
+
+#### 4. Video Feed Constraints
+```typescript
+<video
+  style={{
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover'
+  }}
+/>
+```
+
+### Key Features
+
+1. **Frame-Driven Dimensions**
+   - Canvas size matches frame exactly
+   - Video feed constrained to frame dimensions
+   - Consistent aspect ratio preservation
+
+2. **Dynamic Resizing**
+   - Container rebuilds on frame change
+   - Video feed adjusts automatically
+   - Frame alignment maintained
+
+3. **Quality Preservation**
+   - Frame dimensions preserved
+   - Video quality maintained
+   - Clean transitions
+
+### Best Practices
+
+1. **Frame Loading**
+   - Always load frame first
+   - Get exact dimensions
+   - Handle load errors
+   - Preload when possible
+
+2. **Video Handling**
+   - Constrain to frame dimensions
+   - Use object-fit: cover
+   - Maintain center alignment
+   - Handle aspect ratio differences
+
+3. **Canvas Management**
+   - Match frame dimensions exactly
+   - Rebuild on frame change
+   - Clear previous content
+   - Handle memory properly
+
+### Implementation Checklist
+
+1. **Frame Loading**
+   - [ ] Frame loads successfully
+   - [ ] Dimensions captured correctly
+   - [ ] Error handling in place
+   - [ ] Loading state managed
+
+2. **Video Feed**
+   - [ ] Fits frame dimensions
+   - [ ] Centered in frame
+   - [ ] No overflow
+   - [ ] Quality preserved
+
+3. **Canvas Operations**
+   - [ ] Matches frame size
+   - [ ] Captures full frame
+   - [ ] Proper composition
+   - [ ] Clean rebuilds
+
+### Future Improvements
+
+1. **Performance**
+   - Frame preloading
+   - Canvas pooling
+   - Memory optimization
+   - Transition effects
+
+2. **Features**
+   - Frame position adjustment
+   - Custom frame upload
+   - Frame favorites
+   - Frame categories
+
+3. **Quality**
+   - High DPI support
+   - Better scaling algorithms
+   - Custom quality settings
+   - Format options
+
