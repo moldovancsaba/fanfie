@@ -124,17 +124,19 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black">
       <div className="relative w-full h-full overflow-hidden">
+        {/* Hidden video element used as source */}
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted
           onLoadedMetadata={handleLoadedMetadata}
-          className="hidden"
+          style={{ display: 'none' }}
         />
+        {/* Visible canvas with composited content */}
         <canvas
           ref={canvasRef}
-          className="absolute inset-0 w-full h-full object-contain"
+          className="w-full h-full object-contain"
         />
         {isReady && frameImage && (
           <div 
