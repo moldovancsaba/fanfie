@@ -11,6 +11,7 @@ interface CameraProps {
 export default function CameraComponent({ onCapture, onError, fitToScreen = true }: CameraProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationFrameRef = useRef<number>();
   const [isReady, setIsReady] = useState(false);
   const [frameImage, setFrameImage] = useState<HTMLImageElement | null>(null);
 
@@ -55,6 +56,9 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
       }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
   }, [onError]);
 
@@ -69,8 +73,10 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
     const video = videoRef.current;
 
     // Set canvas size to match video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+    }
 
     // Draw video frame
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -95,8 +101,8 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
     // Draw frame overlay
     context.drawImage(frameImage, x, y, frameWidth, frameHeight);
 
-    // Request next frame
-    requestAnimationFrame(drawFrame);
+    // Continue animation
+    animationFrameRef.current = requestAnimationFrame(drawFrame);
   }, [frameImage]);
 
   // Handle video metadata loaded
@@ -106,11 +112,16 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
     }
   }, []);
 
-  // Start drawing when both video and frame are ready
+  // Start continuous drawing when both video and frame are ready
   useEffect(() => {
     if (isReady && frameImage) {
       drawFrame();
     }
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
   }, [isReady, frameImage, drawFrame]);
 
   const handleCapture = useCallback(() => {
@@ -124,7 +135,6 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black">
       <div className="relative w-full h-full overflow-hidden">
-        {/* Hidden video element used as source */}
         <video
           ref={videoRef}
           autoPlay
@@ -133,7 +143,6 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
           onLoadedMetadata={handleLoadedMetadata}
           style={{ display: 'none' }}
         />
-        {/* Visible canvas with composited content */}
         <canvas
           ref={canvasRef}
           className="w-full h-full object-contain"
