@@ -764,3 +764,57 @@ v1.3.2
 - Add frame positioning controls
 - Enhance frame quality options
 
+
+## v2.3.9 - Frame Overlay Positioning Fix (2025-04-11)
+
+### Fixes
+- Corrected frame overlay positioning over live camera feed
+- Improved z-index hierarchy for proper layering
+- Enhanced frame centering and scaling
+- Fixed aspect ratio preservation
+
+### Technical Improvements
+1. **Layer Structure**
+   - Implemented proper z-index hierarchy
+   - Added correct stacking context
+   - Improved container structure
+   - Enhanced positioning logic
+
+2. **Frame Positioning**
+   - Used transform for precise centering
+   - Improved aspect ratio handling
+   - Enhanced container flexibility
+   - Fixed scaling issues
+
+3. **Visual Hierarchy**
+   - Clear layer separation
+   - Proper element stacking
+   - Consistent positioning
+   - Better visual alignment
+
+### Implementation Details
+- Transform-based centering
+- Flex container structure
+- Z-index management system
+- Responsive container handling
+
+### Browser Support
+- Full support in modern browsers
+- Consistent cross-browser display
+- Mobile-friendly implementation
+- Proper viewport handling
+
+### Deployment
+- Production URL: https://fanfie-4wlg3smru-narimato.vercel.app
+- Release Date: 2025-04-11
+- Git Tag: v2.3.9
+
+### Known Limitations
+- None identified
+
+### Next Steps
+- Consider adding frame animations
+- Implement adjustment controls
+- Add transition effects
+- Enhance frame interactions
+

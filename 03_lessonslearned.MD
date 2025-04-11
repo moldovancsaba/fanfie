@@ -1556,3 +1556,83 @@ const loadImage = async (canvas: FabricCanvas, url: string): Promise<void> => {
    - Frame effects
    - Animation options
 
+
+## Frame Overlay Positioning Fix (2025-04-11)
+
+### Technical Solution
+1. **Proper Layer Structure**
+   ```css
+   /* Video layer */
+   .absolute inset-0 w-full h-full object-cover z-10
+
+   /* Frame overlay layer */
+   .absolute inset-0 flex items-center justify-center z-20
+   ```
+
+2. **Frame Centering**
+   ```css
+   position: absolute;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+   ```
+
+3. **Container Structure**
+   ```jsx
+   <div className="relative w-full h-full flex items-center justify-center">
+     <video className="absolute inset-0 w-full h-full object-cover z-10" />
+     <FrameOverlay /> {/* z-20 ensures overlay above video */}
+   </div>
+   ```
+
+### Implementation Insights
+1. **Layer Management**
+   - Video feed as base layer (z-10)
+   - Frame overlay above video (z-20)
+   - UI elements on top (z-50)
+   - Clear stacking context
+
+2. **Positioning Strategy**
+   - Use transform for precise centering
+   - Maintain aspect ratios
+   - Handle container resizing
+   - Preserve frame proportions
+
+3. **Container Hierarchy**
+   - Flex container for alignment
+   - Relative positioning for context
+   - Absolute children for layering
+   - Proper overflow handling
+
+### Best Practices
+1. **Z-Index Management**
+   - Clear layer hierarchy
+   - Consistent z-index values
+   - Proper stacking context
+   - Documented layer order
+
+2. **Responsive Design**
+   - Viewport-based sizing
+   - Aspect ratio preservation
+   - Flexible container structure
+   - Dynamic resizing support
+
+3. **Performance**
+   - Efficient transform usage
+   - Minimal DOM structure
+   - Optimized reflows
+   - Clean layout updates
+
+### Future Considerations
+1. **Enhancement Ideas**
+   - Add frame transition effects
+   - Implement frame animations
+   - Add frame adjustment controls
+   - Support multiple frame types
+
+2. **Performance Optimization**
+   - Consider hardware acceleration
+   - Optimize transform operations
+   - Reduce layout thrashing
+   - Enhance render performance
+
