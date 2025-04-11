@@ -488,3 +488,59 @@ v1.3.2
 - Add transition animations
 - Enhance image optimization
 
+
+## v2.3.4 - Exact Viewport Matching Fix (2025-04-11)
+
+### Fixes
+- Image preview now exactly matches camera viewport behavior
+- Precise dimension calculations for consistent sizing
+- Improved window resize handling
+- Enhanced container positioning
+
+### Technical Improvements
+1. **Sizing Logic**
+   - Pixel-based calculations for exact dimensions
+   - Direct window dimension usage
+   - Precise aspect ratio maintenance
+   - Consistent viewport edge alignment
+
+2. **Container Handling**
+   - Improved positioning system
+   - Better overflow management
+   - Enhanced centering logic
+   - Consistent UI element placement
+
+3. **Responsive Updates**
+   - Enhanced resize event handling
+   - Smoother transitions
+   - Better resource management
+   - Improved performance
+
+### Implementation Details
+- Use exact pixel calculations
+- Implement precise aspect ratio handling
+- Add efficient resize event management
+- Update container positioning logic
+
+### Browser Support
+- Consistent behavior across modern browsers
+- Improved mobile device support
+- Better orientation change handling
+- Consistent cross-device experience
+
+### Deployment
+- Production URL: https://fanfie-m8chj6lwi-narimato.vercel.app
+- Release Date: 2025-04-11
+- Git Tag: v2.3.4
+
+### Known Limitations
+- Requires modern browser support
+- Performance depends on device capabilities
+- Some mobile browsers may have specific constraints
+
+### Next Steps
+- Add smooth transitions between states
+- Implement touch gesture support
+- Add image manipulation options
+- Enhance preview controls
+

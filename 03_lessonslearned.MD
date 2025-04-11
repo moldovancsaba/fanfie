@@ -1248,3 +1248,69 @@ const loadImage = async (canvas: FabricCanvas, url: string): Promise<void> => {
    - Add preview thumbnails
    - Enhance transition effects
 
+
+## Image Preview Viewport Matching Fix (2025-04-11)
+
+### Technical Solution
+1. **Exact Viewport Matching**
+   ```typescript
+   // Calculate exact dimensions based on window size
+   if (imageAspectRatio > windowAspectRatio) {
+     height = windowHeight;
+     width = windowHeight * imageAspectRatio;
+   } else {
+     width = windowWidth;
+     height = windowWidth / imageAspectRatio;
+   }
+   ```
+
+2. **Dynamic Resizing**
+   - Use pixel-based calculations for precise sizing
+   - Update dimensions on window resize
+   - Maintain exact aspect ratios
+   - Match camera view behavior exactly
+
+3. **Container Positioning**
+   - Absolute positioning for exact placement
+   - Center content precisely
+   - Handle overflow consistently
+   - Match viewport edges exactly
+
+### Implementation Insights
+1. **Precise Calculations**
+   - Use window dimensions directly
+   - Calculate exact pixel values
+   - Update on resize events
+   - Maintain consistent scaling
+
+2. **Container Structure**
+   - Fixed positioning for viewport alignment
+   - Overflow handling for edge cases
+   - Consistent centering logic
+   - Proper z-index layering
+
+3. **Performance Considerations**
+   - Efficient resize event handling
+   - Clean calculation methods
+   - Smooth transitions
+   - Resource cleanup
+
+### Key Learnings
+1. **Viewport Handling**
+   - Direct window dimensions are more precise
+   - Pixel calculations provide better control
+   - Consistent aspect ratio maintenance
+   - Exact edge alignment matters
+
+2. **Layout Management**
+   - Fixed positioning helps with exact sizing
+   - Center alignment needs precise calculations
+   - Container overflow affects display
+   - UI element positioning requires consideration
+
+3. **Responsive Design**
+   - Window resize events need proper handling
+   - Aspect ratios must be precisely maintained
+   - Edge cases require careful consideration
+   - Consistent behavior across states is crucial
+
