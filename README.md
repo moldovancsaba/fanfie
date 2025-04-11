@@ -39,3 +39,58 @@ npm run dev
 - [Development Timeline](50FirstDates.MD#development-timeline)
 - [Release History](RELEASE_NOTES.md)
 - [Implementation Insights](LESSONS_LEARNED.md)
+
+## Screen-Sized Camera Implementation (v2.3.0)
+
+### New Features
+- Responsive camera view that adapts to screen size
+- Intelligent aspect ratio preservation
+- Optimized image quality for different screen sizes
+- Flexible canvas sizing with consistent quality
+
+### Usage
+```tsx
+import CameraComponent from './components/Camera/CameraComponent';
+
+// Basic usage with screen-fitting enabled
+<CameraComponent 
+  onCapture={handleCapture}
+  onError={handleError}
+  fitToScreen={true}
+/>
+```
+
+### Configuration Options
+- `fitToScreen`: Enable/disable screen-size adaptation (default: true)
+- `onCapture`: Callback function receiving the captured image data
+- `onError`: Error handling callback
+
+### Technical Implementation
+The camera view now automatically adjusts to the available screen space while maintaining image quality and aspect ratio. Key features include:
+
+1. **Responsive Container**:
+   - Adapts to screen dimensions
+   - Maintains proper margins and spacing
+   - Handles orientation changes
+
+2. **Quality Preservation**:
+   - Maintains aspect ratio during resizing
+   - Optimizes canvas dimensions for quality
+   - Implements fallback capture mechanism
+
+3. **Error Handling**:
+   - Graceful fallbacks for capture errors
+   - Clear error messaging
+   - Comprehensive error reporting
+
+### Browser Support
+- Chrome (desktop & mobile)
+- Safari (iOS)
+- Firefox
+- Edge
+
+### Known Limitations
+- Requires HTTPS for camera access
+- Performance may vary on low-end devices
+- Some mobile browsers may have limited camera controls
+
