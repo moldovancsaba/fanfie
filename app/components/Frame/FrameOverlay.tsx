@@ -20,12 +20,21 @@ export default function FrameOverlay({
   }, [frameUrl]);
 
   return (
-    <img
-      ref={frameRef}
-      src={frameUrl}
-      alt="Frame"
-      className={`absolute inset-0 w-full h-full pointer-events-none z-10 ${className}`}
-      style={{ objectFit: 'contain' }}
-    />
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+      <img
+        ref={frameRef}
+        src={frameUrl}
+        alt="Frame"
+        className={`w-full h-full object-contain ${className}`}
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          maxWidth: '100%',
+          maxHeight: '100%'
+        }}
+      />
+    </div>
   );
 }

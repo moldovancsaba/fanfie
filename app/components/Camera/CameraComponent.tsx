@@ -13,7 +13,6 @@ interface CameraProps {
 export default function CameraComponent({ onCapture, onError, fitToScreen = true }: CameraProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const frameImageRef = useRef<HTMLImageElement>(null);
   const [isReady, setIsReady] = useState(false);
   const [videoDimensions, setVideoDimensions] = useState<{ width: number; height: number } | null>(null);
 
@@ -85,23 +84,26 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
         frameImage.src = 'https://i.ibb.co/mV2jdW46/SEYU-FRAME.png';
       });
 
-      // Draw frame maintaining aspect ratio
+      // Calculate frame dimensions to maintain aspect ratio
       const frameAspectRatio = frameImage.width / frameImage.height;
       const canvasAspectRatio = canvas.width / canvas.height;
       
-      let drawWidth = canvas.width;
-      let drawHeight = canvas.height;
+      let frameWidth, frameHeight;
       
       if (frameAspectRatio > canvasAspectRatio) {
-        drawHeight = canvas.width / frameAspectRatio;
+        frameWidth = canvas.width;
+        frameHeight = canvas.width / frameAspectRatio;
       } else {
-        drawWidth = canvas.height * frameAspectRatio;
+        frameHeight = canvas.height;
+        frameWidth = canvas.height * frameAspectRatio;
       }
-      
-      const x = (canvas.width - drawWidth) / 2;
-      const y = (canvas.height - drawHeight) / 2;
-      
-      ctx.drawImage(frameImage, x, y, drawWidth, drawHeight);
+
+      // Center the frame
+      const x = (canvas.width - frameWidth) / 2;
+      const y = (canvas.height - frameHeight) / 2;
+
+      // Draw frame
+      ctx.drawImage(frameImage, x, y, frameWidth, frameHeight);
 
       // Convert to data URL
       const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
@@ -116,17 +118,25 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
     <div className="fixed inset-0 flex items-center justify-center bg-black">
       <div 
         ref={containerRef}
-        className="relative w-full h-full overflow-hidden"
+        className="relative w-full h-full"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden'
+        }}
       >
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          onLoadedMetadata={handleLoadedMetadata}
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <FrameOverlay />
+        <div className="relative w-full h-full flex items-center justify-center">
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            onLoadedMetadata={handleLoadedMetadata}
+            className="absolute inset-0 w-full h-full object-cover z-10"
+          />
+          <FrameOverlay />
+        </div>
         {isReady && (
           <div 
             className="fixed left-0 right-0 mx-auto flex justify-center gap-4 z-50"
