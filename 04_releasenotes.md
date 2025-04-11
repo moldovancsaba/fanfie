@@ -1090,3 +1090,55 @@ v1.3.2
 - Implement buffering
 - Enhance transitions
 
+
+## v2.3.15 - Proper Video-Frame Layer Implementation (2025-04-11)
+
+### Features
+- Implemented proper layering system for video and frame
+- Added correct dimension calculations
+- Achieved perfect overlay alignment
+- Created comprehensive overlay implementation guide
+
+### Technical Improvements
+1. **Layer System**
+   - Proper absolute positioning
+   - Correct z-index hierarchy
+   - Accurate dimension calculations
+   - Perfect element alignment
+
+2. **Container Management**
+   - Flex-based centering
+   - Aspect ratio preservation
+   - Responsive dimensions
+   - Proper scaling
+
+3. **Implementation Guide**
+   - Detailed documentation
+   - Step-by-step instructions
+   - Common issues and solutions
+   - Best practices
+
+### Implementation Details
+- Container-based layout system
+- Calculated dimension handling
+- Z-index based layering
+- Position-based alignment
+
+### Documentation
+- Added overlay_implementation_guide.MD
+- Documented layer system
+- Added implementation examples
+- Included best practices
+
+### Local Testing Status
+- Video feed working correctly
+- Frame properly overlaid
+- Dimensions calculated accurately
+- Alignment working perfectly
+
+Would you like me to:
+1. Proceed with Vercel deployment?
+2. Add any additional documentation?
+3. Make any adjustments to the implementation?
+4. Add any other features?
+

@@ -5,28 +5,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 interface CameraProps {
   onCapture: (imageData: string) => void;
   onError: (error: Error) => void;
-  fitToScreen?: boolean;
 }
 
-export default function CameraComponent({ onCapture, onError, fitToScreen = true }: CameraProps) {
+export default function CameraComponent({ onCapture, onError }: CameraProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationFrameRef = useRef<number>();
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
-  const [frameImage, setFrameImage] = useState<HTMLImageElement | null>(null);
-
-  // Initialize frame image
-  useEffect(() => {
-    const img = new Image();
-    img.onload = () => {
-      setFrameImage(img);
-    };
-    img.onerror = (error) => {
-      console.error('Failed to load frame:', error);
-      onError(new Error('Failed to load frame overlay'));
-    };
-    img.src = 'https://i.ibb.co/mV2jdW46/SEYU-FRAME.png';
-  }, [onError]);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   // Initialize camera
   useEffect(() => {
@@ -56,101 +42,110 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
       }
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
     };
   }, [onError]);
 
-  // Draw frame on canvas
-  const drawFrame = useCallback(() => {
-    if (!canvasRef.current || !videoRef.current || !frameImage) return;
-
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-    if (!context) return;
-
-    const video = videoRef.current;
-
-    // Set canvas size to match video
-    if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-    }
-
-    // Draw video frame
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    // Calculate frame dimensions to maintain aspect ratio
-    const frameAspectRatio = frameImage.width / frameImage.height;
-    const canvasAspectRatio = canvas.width / canvas.height;
-    
-    let frameWidth, frameHeight;
-    if (frameAspectRatio > canvasAspectRatio) {
-      frameWidth = canvas.width;
-      frameHeight = canvas.width / frameAspectRatio;
-    } else {
-      frameHeight = canvas.height;
-      frameWidth = canvas.height * frameAspectRatio;
-    }
-
-    // Center the frame
-    const x = (canvas.width - frameWidth) / 2;
-    const y = (canvas.height - frameHeight) / 2;
-
-    // Draw frame overlay
-    context.drawImage(frameImage, x, y, frameWidth, frameHeight);
-
-    // Continue animation
-    animationFrameRef.current = requestAnimationFrame(drawFrame);
-  }, [frameImage]);
-
-  // Handle video metadata loaded
+  // Update dimensions when video metadata is loaded
   const handleLoadedMetadata = useCallback(() => {
-    if (videoRef.current) {
+    if (videoRef.current && containerRef.current) {
+      const video = videoRef.current;
+      const container = containerRef.current;
+      const containerRect = container.getBoundingClientRect();
+      
+      const videoAspectRatio = video.videoWidth / video.videoHeight;
+      const containerAspectRatio = containerRect.width / containerRect.height;
+
+      let width, height;
+      if (videoAspectRatio > containerAspectRatio) {
+        width = containerRect.width;
+        height = containerRect.width / videoAspectRatio;
+      } else {
+        height = containerRect.height;
+        width = containerRect.height * videoAspectRatio;
+      }
+
+      setDimensions({ width, height });
       setIsReady(true);
     }
   }, []);
 
-  // Start continuous drawing when both video and frame are ready
-  useEffect(() => {
-    if (isReady && frameImage) {
-      drawFrame();
-    }
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
-  }, [isReady, frameImage, drawFrame]);
-
   const handleCapture = useCallback(() => {
-    if (!canvasRef.current || !isReady || !frameImage) return;
-    
+    if (!videoRef.current || !canvasRef.current || !isReady) return;
+
+    const video = videoRef.current;
     const canvas = canvasRef.current;
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Draw video
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Draw frame
+    const frameElement = document.querySelector('.frame-overlay') as HTMLImageElement;
+    if (frameElement && frameElement.complete) {
+      ctx.drawImage(frameElement, 0, 0, canvas.width, canvas.height);
+    }
+
     const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
     onCapture(dataUrl);
-  }, [isReady, frameImage, onCapture]);
+  }, [isReady, onCapture]);
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black">
-      <div className="relative w-full h-full overflow-hidden">
+    <div className="fixed inset-0 bg-black flex items-center justify-center">
+      <div 
+        ref={containerRef} 
+        className="relative"
+        style={{
+          width: dimensions.width > 0 ? `${dimensions.width}px` : '100%',
+          height: dimensions.height > 0 ? `${dimensions.height}px` : '100%',
+        }}
+      >
+        {/* Video Layer */}
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted
           onLoadedMetadata={handleLoadedMetadata}
-          style={{ display: 'none' }}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover'
+          }}
         />
-        <canvas
-          ref={canvasRef}
-          className="w-full h-full object-contain"
+
+        {/* Frame Layer */}
+        <img
+          src="https://i.ibb.co/mV2jdW46/SEYU-FRAME.png"
+          alt="Frame"
+          className="frame-overlay"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            pointerEvents: 'none',
+            zIndex: 10
+          }}
         />
-        {isReady && frameImage && (
+
+        {/* Hidden canvas for captures */}
+        <canvas ref={canvasRef} className="hidden" />
+
+        {/* Controls Layer */}
+        {isReady && (
           <div 
-            className="fixed left-0 right-0 mx-auto flex justify-center gap-4"
-            style={{ bottom: '10vh', zIndex: 2000 }}
+            className="absolute left-0 right-0 flex justify-center"
+            style={{ bottom: '10vh', zIndex: 20 }}
           >
             <button
               onClick={handleCapture}
