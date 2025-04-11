@@ -1035,3 +1035,58 @@ v1.3.2
 - Enhance state management
 - Improve transitions
 
+
+## v2.3.14 - Live Video Feed Fix (2025-04-11)
+
+### Features
+- Implemented continuous live video feed
+- Added proper animation frame handling
+- Enhanced canvas update efficiency
+- Improved resource management
+
+### Technical Improvements
+1. **Animation Handling**
+   - requestAnimationFrame implementation
+   - Animation frame tracking
+   - Proper cleanup handling
+   - Continuous updates
+
+2. **Performance**
+   - Optimized canvas updates
+   - Efficient size management
+   - Better rendering performance
+   - Resource optimization
+
+3. **Resource Management**
+   - Proper animation cleanup
+   - Memory optimization
+   - Reference tracking
+   - State management
+
+### Implementation Details
+- Animation frame tracking
+- Continuous canvas updates
+- Optimized size handling
+- Enhanced cleanup
+
+### Browser Support
+- Full support in modern browsers
+- Hardware acceleration usage
+- Consistent performance
+- Proper resource handling
+
+### Deployment
+- Production URL: https://fanfie-kmvmn5t1y-narimato.vercel.app
+- Release Date: 2025-04-11
+- Git Tag: v2.3.14
+
+### Known Limitations
+- Performance depends on device capabilities
+- High resolution may impact frame rate
+
+### Next Steps
+- Monitor performance metrics
+- Add quality controls
+- Implement buffering
+- Enhance transitions
+
