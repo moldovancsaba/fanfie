@@ -544,3 +544,60 @@ v1.3.2
 - Add image manipulation options
 - Enhance preview controls
 
+
+## v2.3.5 - ImgBB Integration (2025-04-11)
+
+### Features
+- Reimplemented ImgBB image upload functionality
+- Added Web Share API integration
+- Enhanced upload status handling
+- Improved user feedback system
+
+### Technical Improvements
+1. **Upload System**
+   - Base64 to blob conversion
+   - FormData handling
+   - Progress tracking
+   - Error management
+
+2. **Share Functionality**
+   - Web Share API support
+   - Clipboard fallback
+   - Multiple sharing options
+   - Error handling
+
+3. **User Experience**
+   - Loading states
+   - Toast notifications
+   - Button state management
+   - Error feedback
+
+### Implementation Details
+- Secure API route handling
+- Proper state management
+- Enhanced error handling
+- Improved resource cleanup
+
+### Browser Support
+- Modern browser compatibility
+- Mobile sharing support
+- Clipboard API fallback
+- Progressive enhancement
+
+### Deployment
+- Production URL: https://fanfie-jfjb19ouj-narimato.vercel.app
+- Release Date: 2025-04-11
+- Git Tag: v2.3.5
+
+### Known Limitations
+- Requires ImgBB API key
+- File size limits apply
+- Browser sharing support varies
+- Requires secure context
+
+### Next Steps
+- Add upload progress indicator
+- Implement retry mechanism
+- Enhance sharing options
+- Add analytics tracking
+
