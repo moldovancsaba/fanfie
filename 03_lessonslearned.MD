@@ -1636,3 +1636,98 @@ const loadImage = async (canvas: FabricCanvas, url: string): Promise<void> => {
    - Reduce layout thrashing
    - Enhance render performance
 
+
+## Frame Centering Enhancement (2025-04-11)
+
+### Technical Solution
+1. **Dynamic Frame Sizing**
+   ```typescript
+   // Calculate frame dimensions based on container
+   const containerRect = containerRef.current.getBoundingClientRect();
+   const frameAspectRatio = img.width / img.height;
+   
+   let frameWidth, frameHeight;
+   const containerAspectRatio = containerRect.width / containerRect.height;
+   
+   if (frameAspectRatio > containerAspectRatio) {
+     frameWidth = containerRect.width;
+     frameHeight = containerRect.width / frameAspectRatio;
+   } else {
+     frameHeight = containerRect.height;
+     frameWidth = containerRect.height * frameAspectRatio;
+   }
+   ```
+
+2. **Perfect Centering**
+   ```css
+   /* Center positioning using transform */
+   transform: translate(-50%, -50%);
+   position: absolute;
+   top: 50%;
+   left: 50%;
+   ```
+
+3. **Container Structure**
+   ```jsx
+   <div className="absolute inset-0 flex items-center justify-center">
+     <img 
+       style={{
+         maxWidth: '100%',
+         maxHeight: '100%',
+         objectFit: 'contain'
+       }}
+     />
+   </div>
+   ```
+
+### Implementation Insights
+1. **Frame Dimensions**
+   - Calculate based on container size
+   - Maintain aspect ratio
+   - Handle window resizing
+   - Consider container bounds
+
+2. **Centering Technique**
+   - Use transform for pixel-perfect centering
+   - Account for frame dimensions
+   - Handle different aspect ratios
+   - Maintain responsiveness
+
+3. **Container Management**
+   - Use flex for initial alignment
+   - Apply absolute positioning
+   - Handle overflow properly
+   - Maintain proper scaling
+
+### Best Practices
+1. **Dynamic Calculations**
+   - Calculate dimensions on load
+   - Update on container changes
+   - Handle aspect ratio properly
+   - Maintain proportions
+
+2. **Performance**
+   - Use efficient transform
+   - Minimize reflows
+   - Handle resize events properly
+   - Clean up event listeners
+
+3. **Error Handling**
+   - Handle image load failures
+   - Validate dimensions
+   - Check container existence
+   - Provide fallbacks
+
+### Future Considerations
+1. **Enhancements**
+   - Add resize observer
+   - Implement smooth transitions
+   - Add adjustment controls
+   - Support frame rotation
+
+2. **Optimization**
+   - Cache calculations
+   - Debounce resize handlers
+   - Optimize repaints
+   - Enhance performance
+

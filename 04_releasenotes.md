@@ -818,3 +818,57 @@ v1.3.2
 - Add transition effects
 - Enhance frame interactions
 
+
+## v2.3.10 - Enhanced Frame Centering (2025-04-11)
+
+### Features
+- Implemented perfect center alignment of frame overlay
+- Added dynamic frame size calculations
+- Improved aspect ratio preservation
+- Enhanced frame positioning in captures
+
+### Technical Improvements
+1. **Frame Positioning**
+   - Perfect center-to-center alignment
+   - Dynamic size calculations
+   - Improved aspect ratio handling
+   - Better container management
+
+2. **Sizing Logic**
+   - Container-based calculations
+   - Proper aspect ratio preservation
+   - Dynamic dimension updates
+   - Enhanced scaling logic
+
+3. **Visual Enhancement**
+   - Precise frame centering
+   - Consistent positioning
+   - Proper overlay alignment
+   - Improved visual balance
+
+### Implementation Details
+- Transform-based centering
+- Dynamic size calculations
+- Container-aware positioning
+- Enhanced capture logic
+
+### Browser Support
+- Full support in modern browsers
+- Mobile-responsive implementation
+- Consistent cross-device display
+- Proper viewport handling
+
+### Deployment
+- Production URL: https://fanfie-28nmc2hon-narimato.vercel.app
+- Release Date: 2025-04-11
+- Git Tag: v2.3.10
+
+### Known Limitations
+- None identified
+
+### Next Steps
+- Add frame adjustment controls
+- Implement frame animations
+- Add transition effects
+- Enhance interaction options
+
