@@ -1,17 +1,65 @@
 'use client';
 
+interface Dimensions {
+  width: number;
+  height: number;
+}
+
 /**
- * Gets the current screen/viewport dimensions
+ * Gets the current viewport dimensions
  */
-export function getScreenDimensions(): { width: number; height: number } {
+export function getViewportDimensions(): Dimensions {
   if (typeof window === 'undefined') {
     return { width: 0, height: 0 };
   }
-  // Get window dimensions
-  const width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-  const height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
   
-  return { width, height };
+  return {
+    width: window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth,
+    height: window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
+  };
+}
+
+/**
+ * Calculates optimal dimensions while preserving aspect ratio
+ */
+function calculateTargetDimensions(
+  sourceWidth: number,
+  sourceHeight: number,
+  maxWidth: number,
+  maxHeight: number,
+  fitToScreen: boolean
+): Dimensions {
+  const aspectRatio = sourceWidth / sourceHeight;
+  let targetWidth = sourceWidth;
+  let targetHeight = sourceHeight;
+
+  if (fitToScreen) {
+    const viewport = getViewportDimensions();
+    const availableWidth = Math.min(viewport.width - 32, maxWidth);
+    const availableHeight = Math.min(viewport.height - 120, maxHeight);
+    
+    if (aspectRatio > availableWidth / availableHeight) {
+      // Width limited
+      targetWidth = availableWidth;
+      targetHeight = Math.round(targetWidth / aspectRatio);
+    } else {
+      // Height limited
+      targetHeight = availableHeight;
+      targetWidth = Math.round(targetHeight * aspectRatio);
+    }
+  } else if (sourceWidth > maxWidth || sourceHeight > maxHeight) {
+    if (aspectRatio > maxWidth / maxHeight) {
+      // Width limited
+      targetWidth = maxWidth;
+      targetHeight = Math.round(targetWidth / aspectRatio);
+    } else {
+      // Height limited
+      targetHeight = maxHeight;
+      targetWidth = Math.round(targetHeight * aspectRatio);
+    }
+  }
+
+  return { width: targetWidth, height: targetHeight };
 }
 
 /**
@@ -30,8 +78,6 @@ export function optimizeCanvas(
   const {
     maxWidth = 4096,
     maxHeight = 4096,
-    quality = 1.0,
-    format = 'jpeg',
     fitToScreen = false
   } = options;
   
@@ -42,61 +88,15 @@ export function optimizeCanvas(
   if (!videoWidth || !videoHeight) {
     throw new Error('Video dimensions not available. Make sure video is playing.');
   }
-  
-  // Calculate dimensions while preserving aspect ratio
-  let targetWidth = videoWidth;
-  let targetHeight = videoHeight;
-  
-  // If fitToScreen is true, consider screen dimensions
-  if (fitToScreen) {
-    const { width: screenWidth, height: screenHeight } = getScreenDimensions();
-    
-    // Use screen dimensions as constraints (with some margin for UI elements)
-    const availableWidth = Math.min(screenWidth - 32, maxWidth); // 16px margin on each side
-    const availableHeight = Math.min(screenHeight - 120, maxHeight); // Allow space for UI elements
-    
-    const aspectRatio = videoWidth / videoHeight;
-    
-    if (aspectRatio > 1) {
-      // Landscape orientation
-      targetWidth = Math.min(availableWidth, targetWidth);
-      targetHeight = Math.round(targetWidth / aspectRatio);
-      
-      if (targetHeight > availableHeight) {
-        targetHeight = availableHeight;
-        targetWidth = Math.round(targetHeight * aspectRatio);
-      }
-    } else {
-      // Portrait or square orientation
-      targetHeight = Math.min(availableHeight, targetHeight);
-      targetWidth = Math.round(targetHeight * aspectRatio);
-      
-      if (targetWidth > availableWidth) {
-        targetWidth = availableWidth;
-        targetHeight = Math.round(targetWidth / aspectRatio);
-      }
-    }
-  } else if (targetWidth > maxWidth || targetHeight > maxHeight) {
-    const aspectRatio = videoWidth / videoHeight;
-    
-    if (aspectRatio > 1) {
-      targetWidth = Math.min(maxWidth, targetWidth);
-      targetHeight = Math.round(targetWidth / aspectRatio);
-      
-      if (targetHeight > maxHeight) {
-        targetHeight = maxHeight;
-        targetWidth = Math.round(targetHeight * aspectRatio);
-      }
-    } else {
-      targetHeight = Math.min(maxHeight, targetHeight);
-      targetWidth = Math.round(targetHeight * aspectRatio);
-      
-      if (targetWidth > maxWidth) {
-        targetWidth = maxWidth;
-        targetHeight = Math.round(targetWidth / aspectRatio);
-      }
-    }
-  }
+
+  // Calculate target dimensions
+  const { width: targetWidth, height: targetHeight } = calculateTargetDimensions(
+    videoWidth,
+    videoHeight,
+    maxWidth,
+    maxHeight,
+    fitToScreen
+  );
   
   // Create and setup canvas
   const canvas = document.createElement('canvas');
@@ -107,6 +107,10 @@ export function optimizeCanvas(
   if (!ctx) {
     throw new Error('Could not get canvas context');
   }
+
+  // Optional: Add image smoothing for better quality
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
   
   // Draw video frame to canvas
   ctx.drawImage(sourceVideo, 0, 0, targetWidth, targetHeight);
@@ -143,8 +147,6 @@ export function captureHighQualityPhoto(
     const { canvas, width, height } = optimizeCanvas(videoElement, {
       maxWidth,
       maxHeight,
-      format,
-      quality,
       fitToScreen
     });
     
