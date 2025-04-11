@@ -94,3 +94,75 @@ The camera view now automatically adjusts to the available screen space while ma
 - Performance may vary on low-end devices
 - Some mobile browsers may have limited camera controls
 
+
+## ImgBB Integration (v2.3.5)
+
+### Features
+- Secure image upload to ImgBB
+- Dynamic image preview
+- Web Share API integration
+- Clipboard sharing fallback
+
+### Setup
+1. Environment Configuration
+   ```env
+   IMGBB_API_KEY=your_imgbb_api_key
+   ```
+
+2. Usage
+   ```typescript
+   // Upload image
+   const formData = new FormData();
+   formData.append('image', imageBlob);
+   const response = await fetch('/api/upload', {
+     method: 'POST',
+     body: formData
+   });
+
+   // Share image
+   if (navigator.share) {
+     await navigator.share({
+       title: 'My Photo',
+       text: 'Check out my photo!',
+       url: uploadedUrl
+     });
+   }
+   ```
+
+### Implementation Details
+1. **Upload Process**
+   - Base64 to Blob conversion
+   - Secure API route handling
+   - Progress tracking
+   - Error management
+
+2. **Share Functionality**
+   - Native Web Share API support
+   - Clipboard fallback for unsupported browsers
+   - Toast notifications for feedback
+   - Error handling
+
+3. **User Experience**
+   - Loading states during upload
+   - Success/error notifications
+   - Responsive button states
+   - Clear visual feedback
+
+### Browser Support
+- Modern browsers (Chrome, Firefox, Safari, Edge)
+- Mobile browsers with Web Share API
+- Clipboard API fallback for sharing
+- Progressive enhancement approach
+
+### Known Limitations
+- Requires ImgBB API key
+- File size limits apply
+- Web Share API support varies
+- Requires HTTPS in production
+
+### Testing
+- Unit tests for upload functionality
+- Error handling coverage
+- Mock API responses
+- Integration testing
+
