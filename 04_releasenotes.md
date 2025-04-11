@@ -981,3 +981,57 @@ v1.3.2
 - Add performance optimizations
 - Enhance frame adjustments
 
+
+## v2.3.13 - Video Element Display Cleanup (2025-04-11)
+
+### Features
+- Removed duplicate video element display
+- Cleaned up DOM structure
+- Improved visual hierarchy
+- Enhanced element organization
+
+### Technical Improvements
+1. **Display Structure**
+   - Hidden video source element
+   - Single visible canvas
+   - Clear element hierarchy
+   - Simplified DOM structure
+
+2. **Performance**
+   - Reduced DOM complexity
+   - Better memory usage
+   - Cleaner render tree
+   - Improved efficiency
+
+3. **Code Organization**
+   - Clear element structure
+   - Proper element roles
+   - Better maintainability
+   - Enhanced debugging
+
+### Implementation Details
+- Hidden video source
+- Visible composited canvas
+- Clean element hierarchy
+- Proper layering
+
+### Browser Support
+- Full support in modern browsers
+- Consistent cross-browser display
+- Mobile-friendly implementation
+- Proper canvas handling
+
+### Deployment
+- Production URL: https://fanfie-qaf2y41ph-narimato.vercel.app
+- Release Date: 2025-04-11
+- Git Tag: v2.3.13
+
+### Known Limitations
+- None identified
+
+### Next Steps
+- Monitor performance metrics
+- Consider further optimizations
+- Enhance state management
+- Improve transitions
+
