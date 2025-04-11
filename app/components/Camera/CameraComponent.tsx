@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { captureHighQualityPhoto } from '../../services/CameraQualityService';
 
 interface CameraProps {
   onCapture: (imageData: string) => void;
@@ -18,23 +19,27 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
     async function startCamera() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false
+          video: {
+            facingMode: 'user',
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
         });
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
       } catch (error) {
-        onError(error as Error);
+        console.error('Error accessing camera:', error);
+        onError(error instanceof Error ? error : new Error('Failed to access camera'));
       }
     }
 
     startCamera();
 
     return () => {
-      const stream = videoRef.current?.srcObject as MediaStream;
-      if (stream) {
+      if (videoRef.current?.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
       }
     };
@@ -44,7 +49,6 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
   useEffect(() => {
     const updateDimensions = () => {
       if (containerRef.current) {
-        // Get available screen dimensions with some margins
         const availableWidth = window.innerWidth - 32; // 16px margin on each side
         const availableHeight = window.innerHeight - 120; // Space for UI elements
         
@@ -55,10 +59,7 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
       }
     };
 
-    // Initial calculation
     updateDimensions();
-    
-    // Update on resize
     window.addEventListener('resize', updateDimensions);
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
@@ -74,34 +75,30 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
 
     const video = videoRef.current;
     
-    // Import the function dynamically to avoid issues with server-side rendering
-    import('../../services/CameraQualityService').then(({ captureHighQualityPhoto }) => {
-      try {
-        // Use the improved captureHighQualityPhoto function to get screen-sized image
-        const { dataUrl } = captureHighQualityPhoto(video, {
-          format: 'jpeg',
-          quality: 0.95,
-          fitToScreen: fitToScreen
-        });
-        
-        onCapture(dataUrl);
-      } catch (error) {
-        console.error('Error capturing photo:', error);
-        
-        // Fallback to basic capture if the enhanced version fails
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        
-        const context = canvas.getContext('2d');
-        if (!context) return;
-        
-        context.drawImage(video, 0, 0);
-        const imageData = canvas.toDataURL('image/jpeg', 0.8);
-        onCapture(imageData);
-      }
-    });
-  }, [isReady, onCapture]);
+    try {
+      const { dataUrl } = captureHighQualityPhoto(video, {
+        format: 'jpeg',
+        quality: 0.95,
+        fitToScreen: fitToScreen
+      });
+      
+      onCapture(dataUrl);
+    } catch (error) {
+      console.error('Error capturing photo:', error);
+      
+      // Fallback to basic capture if the enhanced version fails
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      const context = canvas.getContext('2d');
+      if (!context) return;
+      
+      context.drawImage(video, 0, 0);
+      const imageData = canvas.toDataURL('image/jpeg', 0.8);
+      onCapture(imageData);
+    }
+  }, [isReady, onCapture, fitToScreen]);
 
   return (
     <div 
