@@ -432,3 +432,59 @@ v1.3.2
 - Add rotation capabilities
 - Enhance preview controls
 
+
+## v2.3.3 - Dynamic Image Preview (2025-04-11)
+
+### Features
+- Implemented dynamic sizing for captured image preview
+- Added aspect ratio preservation for previews
+- Enhanced preview container layout
+- Improved UI element positioning
+
+### Technical Improvements
+1. **Preview Sizing**
+   - Dynamic calculation of image dimensions
+   - Viewport-based responsive sizing
+   - Aspect ratio preservation
+   - Consistent display across devices
+
+2. **Layout Enhancements**
+   - Fullscreen preview container
+   - Centered image positioning
+   - Responsive UI elements
+   - Improved visual hierarchy
+
+3. **User Experience**
+   - Seamless transition from camera to preview
+   - Consistent sizing behavior
+   - Clear action buttons
+   - Responsive feedback
+
+### Implementation Details
+- Pre-load images for dimension calculation
+- Use viewport units for responsive sizing
+- Implement dynamic aspect ratio handling
+- Enhanced preview container structure
+
+### Browser Support
+- Full support in modern browsers
+- Mobile-responsive implementation
+- Orientation change handling
+- Consistent cross-browser display
+
+### Deployment
+- Production URL: https://fanfie-67ifyum6f-narimato.vercel.app
+- Release Date: 2025-04-11
+- Git Tag: v2.3.3
+
+### Known Limitations
+- Initial image load time affects dimension calculation
+- Large images may require optimization
+- Some mobile browsers may have specific constraints
+
+### Next Steps
+- Add image zoom functionality
+- Implement touch gestures
+- Add transition animations
+- Enhance image optimization
+

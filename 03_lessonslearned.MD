@@ -1173,3 +1173,78 @@ const loadImage = async (canvas: FabricCanvas, url: string): Promise<void> => {
    - Support different orientations
    - Consider fallback options
 
+
+## Dynamic Image Preview Implementation (2025-04-11)
+
+### Technical Solutions
+1. **Dynamic Image Sizing**
+   ```typescript
+   // Calculate image display dimensions based on viewport
+   const getImageStyle = () => {
+     const imageAspectRatio = imageDimensions.width / imageDimensions.height;
+     const windowAspectRatio = windowWidth / windowHeight;
+
+     if (imageAspectRatio > windowAspectRatio) {
+       return {
+         width: '100vw',
+         height: `${100 / imageAspectRatio}vw`,
+       };
+     } else {
+       return {
+         width: `${imageAspectRatio * 100}vh`,
+         height: '100vh',
+       };
+     }
+   };
+   ```
+
+2. **Image Dimensions Handling**
+   - Load image dimensions before display
+   - Calculate aspect ratio dynamically
+   - Use viewport-relative units
+   - Maintain proportions during resize
+
+3. **Improved Preview Experience**
+   - Consistent sizing with camera view
+   - Smooth transitions between states
+   - Proper centering and alignment
+   - Responsive UI elements
+
+### Best Practices
+1. **Image Loading**
+   - Pre-load images to get dimensions
+   - Handle load errors gracefully
+   - Clean up resources properly
+   - Use proper image optimization
+
+2. **Responsive Design**
+   - Use viewport units for sizing
+   - Calculate dimensions efficiently
+   - Handle orientation changes
+   - Maintain aspect ratios
+
+3. **UI Considerations**
+   - Clear action buttons
+   - Proper spacing and positioning
+   - Consistent visual feedback
+   - Smooth state transitions
+
+### Future Improvements
+1. **Enhancement Ideas**
+   - Add zoom gesture support
+   - Implement image panning
+   - Add transition animations
+   - Support multiple aspect ratios
+
+2. **Performance Optimizations**
+   - Lazy load high-res versions
+   - Implement progressive loading
+   - Cache calculated dimensions
+   - Optimize resize calculations
+
+3. **User Experience**
+   - Add loading indicators
+   - Improve error feedback
+   - Add preview thumbnails
+   - Enhance transition effects
+
