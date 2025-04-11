@@ -3,14 +3,37 @@
 import { useState, useCallback } from 'react';
 import CameraComponent from './components/Camera/CameraComponent';
 import { Button, Stack, Dialog, DialogTitle, DialogContent, DialogActions, Typography } from '@mui/material';
-import { PhotoCamera, Replay, Upload, ArrowBack, Share, Error } from '@mui/icons-material';
+import { PhotoCamera, Replay, Upload, ArrowBack, Share, Error as ErrorIcon } from '@mui/icons-material';
 import toast from 'react-hot-toast';
+
+interface ImgBBResponse {
+  data?: {
+    url: string;
+  };
+  error?: {
+    message: string;
+  };
+  details?: string;
+}
+
+interface ErrorState {
+  title: string;
+  details: string;
+}
+
+// Custom error class
+class ImageUploadError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ImageUploadError';
+  }
+}
 
 export default function Home() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
-  const [error, setError] = useState<{ title: string; details: string } | null>(null);
+  const [error, setError] = useState<ErrorState | null>(null);
 
   const handleCapture = useCallback((imageData: string) => {
     setCapturedImage(imageData);
@@ -49,9 +72,11 @@ export default function Home() {
         body: formData
       });
 
-      const data = await uploadResponse.json();
+      const data: ImgBBResponse = await uploadResponse.json();
 
       if (!uploadResponse.ok) {
+        const errorMessage = data.error?.message || 'Upload failed';
+        
         // Handle specific error cases
         if (uploadResponse.status === 503) {
           setError({
@@ -64,7 +89,7 @@ export default function Home() {
             details: data.details || 'An error occurred while uploading the image.'
           });
         }
-        throw new Error(data.error);
+        throw new ImageUploadError(errorMessage);
       }
       
       if (data.data?.url) {
@@ -72,12 +97,16 @@ export default function Home() {
         toast.dismiss();
         toast.success('Image uploaded successfully!');
       } else {
-        throw new Error('Invalid response from server');
+        throw new ImageUploadError('Invalid response from server');
       }
     } catch (error) {
       console.error('Upload error:', error);
       toast.dismiss();
-      toast.error('Failed to upload image. Please try again.');
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error('Failed to upload image. Please try again.');
+      }
     } finally {
       setIsUploading(false);
     }
@@ -195,7 +224,7 @@ export default function Home() {
         aria-labelledby="error-dialog-title"
       >
         <DialogTitle id="error-dialog-title" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Error color="error" />
+          <ErrorIcon color="error" />
           {error?.title}
         </DialogTitle>
         <DialogContent>

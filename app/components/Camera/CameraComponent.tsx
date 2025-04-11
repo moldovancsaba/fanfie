@@ -1,11 +1,21 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Button, Stack } from '@mui/material';
+import { PhotoCamera, Style } from '@mui/icons-material';
 
 interface CameraProps {
   onCapture: (imageData: string) => void;
   onError: (error: Error) => void;
 }
+
+// Exact frame URLs as provided
+const FRAMES = [
+  'https://i.ibb.co/mV2jdW46/SEYU-FRAME.png',  // Original frame
+  'https://i.ibb.co/HfXZwMTr/SEYU-FRAME-1080x1920.png',
+  'https://i.ibb.co/Zzb3Yrxq/SEYU-FRAME-1920x1080.png',
+  'https://i.ibb.co/MDzTJdB8/SEYU-FRAME-1080x1080.png'
+];
 
 export default function CameraComponent({ onCapture, onError }: CameraProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -13,6 +23,29 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
+  const [currentFrameUrl, setCurrentFrameUrl] = useState(FRAMES[0]);
+  const [isFrameLoading, setIsFrameLoading] = useState(false);
+
+  // Load frame image whenever URL changes
+  useEffect(() => {
+    let img = new Image();
+    img.crossOrigin = 'anonymous';
+    setIsFrameLoading(true);
+
+    img.onload = () => {
+      console.log('Frame loaded:', currentFrameUrl);
+      setIsFrameLoading(false);
+    };
+
+    img.onerror = (error) => {
+      console.error('Frame load error:', error);
+      setIsFrameLoading(false);
+      onError(new Error(`Failed to load frame: ${currentFrameUrl}`));
+    };
+
+    img.src = currentFrameUrl;
+  }, [currentFrameUrl, onError]);
 
   // Initialize camera
   useEffect(() => {
@@ -84,15 +117,58 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
     // Draw video
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Draw frame
-    const frameElement = document.querySelector('.frame-overlay') as HTMLImageElement;
-    if (frameElement && frameElement.complete) {
-      ctx.drawImage(frameElement, 0, 0, canvas.width, canvas.height);
-    }
+    // Load current frame for capture
+    const frameImage = new Image();
+    frameImage.crossOrigin = 'anonymous';
+    frameImage.onload = () => {
+      // Calculate frame dimensions to maintain aspect ratio
+      const frameAspectRatio = frameImage.width / frameImage.height;
+      const canvasAspectRatio = canvas.width / canvas.height;
+      
+      let frameWidth, frameHeight;
+      if (frameAspectRatio > canvasAspectRatio) {
+        frameWidth = canvas.width;
+        frameHeight = canvas.width / frameAspectRatio;
+      } else {
+        frameHeight = canvas.height;
+        frameWidth = canvas.height * frameAspectRatio;
+      }
 
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-    onCapture(dataUrl);
-  }, [isReady, onCapture]);
+      // Center the frame
+      const x = (canvas.width - frameWidth) / 2;
+      const y = (canvas.height - frameHeight) / 2;
+
+      // Draw frame
+      ctx.drawImage(frameImage, x, y, frameWidth, frameHeight);
+
+      // Convert to data URL after frame is drawn
+      try {
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+        onCapture(dataUrl);
+      } catch (error) {
+        console.error('Canvas capture error:', error);
+        onError(new Error('Failed to capture photo'));
+      }
+    };
+
+    frameImage.src = currentFrameUrl;
+  }, [isReady, onCapture, currentFrameUrl, onError]);
+
+  const handleChangeFrame = useCallback(() => {
+    console.log('Changing frame from index:', currentFrameIndex);
+    const nextIndex = (currentFrameIndex + 1) % FRAMES.length;
+    setCurrentFrameIndex(nextIndex);
+    setCurrentFrameUrl(FRAMES[nextIndex]);
+    console.log('New frame URL:', FRAMES[nextIndex]);
+  }, [currentFrameIndex]);
+
+  // Button styles
+  const buttonStyle = {
+    borderRadius: '28px',
+    padding: '12px 24px',
+    textTransform: 'none',
+    fontSize: '1rem',
+  };
 
   return (
     <div className="fixed inset-0 bg-black flex items-center justify-center">
@@ -122,38 +198,76 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
         />
 
         {/* Frame Layer */}
-        <img
-          src="https://i.ibb.co/mV2jdW46/SEYU-FRAME.png"
-          alt="Frame"
-          className="frame-overlay"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain',
-            pointerEvents: 'none',
-            zIndex: 10
-          }}
-        />
+        {!isFrameLoading && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'none',
+              zIndex: 10,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <img
+              src={currentFrameUrl}
+              alt="Frame"
+              className="frame-overlay"
+              crossOrigin="anonymous"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain'
+              }}
+            />
+          </div>
+        )}
 
         {/* Hidden canvas for captures */}
         <canvas ref={canvasRef} className="hidden" />
 
         {/* Controls Layer */}
         {isReady && (
-          <div 
-            className="absolute left-0 right-0 flex justify-center"
-            style={{ bottom: '10vh', zIndex: 20 }}
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{
+              position: 'absolute',
+              bottom: '2rem',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 2000
+            }}
           >
-            <button
+            <Button
+              variant="contained"
+              startIcon={<Style />}
+              onClick={handleChangeFrame}
+              disabled={isFrameLoading}
+              sx={{
+                ...buttonStyle,
+                backgroundColor: '#9c27b0',
+                '&:hover': {
+                  backgroundColor: '#7b1fa2'
+                }
+              }}
+            >
+              {isFrameLoading ? 'Loading...' : 'Change Design'}
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<PhotoCamera />}
               onClick={handleCapture}
-              className="px-6 py-3 bg-blue-500 text-white rounded-full text-lg shadow-lg hover:bg-blue-600 transition-colors"
+              disabled={isFrameLoading}
+              sx={buttonStyle}
             >
               Take Photo
-            </button>
-          </div>
+            </Button>
+          </Stack>
         )}
       </div>
     </div>
