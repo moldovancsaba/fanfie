@@ -9,7 +9,12 @@ interface CameraProps {
   onError: (error: Error) => void;
 }
 
-// Exact frame URLs as provided
+interface FrameInfo {
+  url: string;
+  width: number;
+  height: number;
+}
+
 const FRAMES = [
   'https://i.ibb.co/mV2jdW46/SEYU-FRAME.png',  // Original frame
   'https://i.ibb.co/HfXZwMTr/SEYU-FRAME-1080x1920.png',
@@ -20,32 +25,43 @@ const FRAMES = [
 export default function CameraComponent({ onCapture, onError }: CameraProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
-  const [currentFrameUrl, setCurrentFrameUrl] = useState(FRAMES[0]);
-  const [isFrameLoading, setIsFrameLoading] = useState(false);
+  const [isFrameLoading, setIsFrameLoading] = useState(true);
+  const [currentFrame, setCurrentFrame] = useState<FrameInfo | null>(null);
 
-  // Load frame image whenever URL changes
-  useEffect(() => {
-    let img = new Image();
-    img.crossOrigin = 'anonymous';
+  // Load frame and set up canvas dimensions
+  const loadFrame = useCallback(async (frameUrl: string) => {
     setIsFrameLoading(true);
-
-    img.onload = () => {
-      console.log('Frame loaded:', currentFrameUrl);
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      await new Promise((resolve, reject) => {
+        img.onload = () => {
+          setCurrentFrame({
+            url: frameUrl,
+            width: img.naturalWidth,
+            height: img.naturalHeight
+          });
+          resolve(img);
+        };
+        img.onerror = reject;
+        img.src = frameUrl;
+      });
+      
       setIsFrameLoading(false);
-    };
-
-    img.onerror = (error) => {
+    } catch (error) {
       console.error('Frame load error:', error);
       setIsFrameLoading(false);
-      onError(new Error(`Failed to load frame: ${currentFrameUrl}`));
-    };
+      onError(new Error(`Failed to load frame: ${frameUrl}`));
+    }
+  }, [onError]);
 
-    img.src = currentFrameUrl;
-  }, [currentFrameUrl, onError]);
+  // Initialize with first frame
+  useEffect(() => {
+    loadFrame(FRAMES[0]);
+  }, [loadFrame]);
 
   // Initialize camera
   useEffect(() => {
@@ -78,70 +94,28 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
     };
   }, [onError]);
 
-  // Update dimensions when video metadata is loaded
-  const handleLoadedMetadata = useCallback(() => {
-    if (videoRef.current && containerRef.current) {
-      const video = videoRef.current;
-      const container = containerRef.current;
-      const containerRect = container.getBoundingClientRect();
-      
-      const videoAspectRatio = video.videoWidth / video.videoHeight;
-      const containerAspectRatio = containerRect.width / containerRect.height;
-
-      let width, height;
-      if (videoAspectRatio > containerAspectRatio) {
-        width = containerRect.width;
-        height = containerRect.width / videoAspectRatio;
-      } else {
-        height = containerRect.height;
-        width = containerRect.height * videoAspectRatio;
-      }
-
-      setDimensions({ width, height });
-      setIsReady(true);
-    }
-  }, []);
-
   const handleCapture = useCallback(() => {
-    if (!videoRef.current || !canvasRef.current || !isReady) return;
+    if (!videoRef.current || !canvasRef.current || !isReady || !currentFrame) return;
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
     
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    // Set canvas size to match frame dimensions
+    canvas.width = currentFrame.width;
+    canvas.height = currentFrame.height;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Draw video
+    // Draw video onto canvas, matching frame dimensions
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Load current frame for capture
+    // Load and draw frame
     const frameImage = new Image();
     frameImage.crossOrigin = 'anonymous';
     frameImage.onload = () => {
-      // Calculate frame dimensions to maintain aspect ratio
-      const frameAspectRatio = frameImage.width / frameImage.height;
-      const canvasAspectRatio = canvas.width / canvas.height;
+      ctx.drawImage(frameImage, 0, 0, canvas.width, canvas.height);
       
-      let frameWidth, frameHeight;
-      if (frameAspectRatio > canvasAspectRatio) {
-        frameWidth = canvas.width;
-        frameHeight = canvas.width / frameAspectRatio;
-      } else {
-        frameHeight = canvas.height;
-        frameWidth = canvas.height * frameAspectRatio;
-      }
-
-      // Center the frame
-      const x = (canvas.width - frameWidth) / 2;
-      const y = (canvas.height - frameHeight) / 2;
-
-      // Draw frame
-      ctx.drawImage(frameImage, x, y, frameWidth, frameHeight);
-
-      // Convert to data URL after frame is drawn
       try {
         const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
         onCapture(dataUrl);
@@ -150,17 +124,18 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
         onError(new Error('Failed to capture photo'));
       }
     };
+    frameImage.src = currentFrame.url;
+  }, [isReady, currentFrame, onCapture, onError]);
 
-    frameImage.src = currentFrameUrl;
-  }, [isReady, onCapture, currentFrameUrl, onError]);
+  const handleLoadedMetadata = useCallback(() => {
+    setIsReady(true);
+  }, []);
 
   const handleChangeFrame = useCallback(() => {
-    console.log('Changing frame from index:', currentFrameIndex);
     const nextIndex = (currentFrameIndex + 1) % FRAMES.length;
     setCurrentFrameIndex(nextIndex);
-    setCurrentFrameUrl(FRAMES[nextIndex]);
-    console.log('New frame URL:', FRAMES[nextIndex]);
-  }, [currentFrameIndex]);
+    loadFrame(FRAMES[nextIndex]);
+  }, [currentFrameIndex, loadFrame]);
 
   // Button styles
   const buttonStyle = {
@@ -170,16 +145,25 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
     fontSize: '1rem',
   };
 
+  if (!currentFrame) {
+    return <div className="fixed inset-0 bg-black flex items-center justify-center">
+      <div>Loading frame...</div>
+    </div>;
+  }
+
+  const containerStyle = {
+    width: '100%',
+    height: '100%',
+    maxWidth: `${currentFrame.width}px`,
+    maxHeight: `${currentFrame.height}px`,
+    aspectRatio: `${currentFrame.width}/${currentFrame.height}`,
+    position: 'relative' as const,
+    overflow: 'hidden'
+  };
+
   return (
     <div className="fixed inset-0 bg-black flex items-center justify-center">
-      <div 
-        ref={containerRef} 
-        className="relative"
-        style={{
-          width: dimensions.width > 0 ? `${dimensions.width}px` : '100%',
-          height: dimensions.height > 0 ? `${dimensions.height}px` : '100%',
-        }}
-      >
+      <div style={containerStyle}>
         {/* Video Layer */}
         <video
           ref={videoRef}
@@ -189,8 +173,6 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
           onLoadedMetadata={handleLoadedMetadata}
           style={{
             position: 'absolute',
-            top: 0,
-            left: 0,
             width: '100%',
             height: '100%',
             objectFit: 'cover'
@@ -198,34 +180,21 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
         />
 
         {/* Frame Layer */}
-        {!isFrameLoading && (
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              pointerEvents: 'none',
-              zIndex: 10,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <img
-              src={currentFrameUrl}
-              alt="Frame"
-              className="frame-overlay"
-              crossOrigin="anonymous"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain'
-              }}
-            />
-          </div>
-        )}
+        <img
+          src={currentFrame.url}
+          alt="Frame"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            pointerEvents: 'none',
+            zIndex: 10
+          }}
+          crossOrigin="anonymous"
+        />
 
         {/* Hidden canvas for captures */}
         <canvas ref={canvasRef} className="hidden" />
