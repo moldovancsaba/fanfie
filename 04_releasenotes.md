@@ -601,3 +601,57 @@ v1.3.2
 - Enhance sharing options
 - Add analytics tracking
 
+
+## v2.3.6 - Button Position Enhancement (2025-04-11)
+
+### Features
+- Improved button positioning with viewport-based layout
+- Consistent button placement across all views
+- Enhanced visual hierarchy with proper layering
+- Better user experience with clear button access
+
+### Technical Improvements
+1. **Layout Enhancement**
+   - Viewport-based positioning (10% from bottom)
+   - Horizontal center alignment
+   - Consistent button container
+   - Proper spacing system
+
+2. **Visual Hierarchy**
+   - Z-index management
+   - Clear stacking context
+   - Consistent visual presence
+   - Better contrast handling
+
+3. **Responsive Design**
+   - Viewport unit positioning
+   - Flexible container sizing
+   - Mobile-friendly layout
+   - Consistent spacing
+
+### Implementation Details
+- Fixed positioning with viewport units
+- Flex layout for button container
+- Z-index management system
+- Consistent styling approach
+
+### Browser Support
+- Full support in modern browsers
+- Mobile-responsive implementation
+- Consistent cross-device display
+- Proper viewport handling
+
+### Deployment
+- Production URL: https://fanfie-198s15k89-narimato.vercel.app
+- Release Date: 2025-04-11
+- Git Tag: v2.3.6
+
+### Known Limitations
+- None identified
+
+### Next Steps
+- Consider adding button animations
+- Implement touch feedback
+- Add button state transitions
+- Enhance visual feedback
+

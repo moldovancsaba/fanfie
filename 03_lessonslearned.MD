@@ -1411,3 +1411,64 @@ const loadImage = async (canvas: FabricCanvas, url: string): Promise<void> => {
    - Implement lazy loading
    - Add request caching
 
+
+## Button Positioning Improvements (2025-04-11)
+
+### Technical Solution
+1. **Viewport-Based Positioning**
+   ```css
+   /* Button container positioning */
+   .fixed left-0 right-0 mx-auto flex justify-center gap-4 z-50
+   bottom: 10vh; /* 10% up from bottom */
+   ```
+
+2. **Layer Management**
+   - Use z-index: 50 for buttons
+   - Keep buttons above content
+   - Consistent across views
+   - Proper stacking context
+
+3. **Responsive Considerations**
+   - Use viewport units for positioning
+   - Center alignment with flex
+   - Consistent spacing with gap
+   - Proper button scaling
+
+### Implementation Insights
+1. **Button Container**
+   - Fixed positioning for viewport alignment
+   - Auto margins for horizontal centering
+   - Flex layout for button spacing
+   - Gap utility for consistent spacing
+
+2. **Layer Handling**
+   - Z-index management for proper stacking
+   - Button container above content
+   - Consistent across camera and preview
+   - Clear visual hierarchy
+
+3. **Responsive Design**
+   - Viewport-relative positioning
+   - Flexible container width
+   - Consistent button sizing
+   - Mobile-friendly layout
+
+### Best Practices
+1. **Layout Structure**
+   - Keep buttons in fixed container
+   - Use viewport units for positioning
+   - Maintain consistent spacing
+   - Consider all view states
+
+2. **Visual Hierarchy**
+   - Proper z-index levels
+   - Clear button visibility
+   - Consistent positioning
+   - Proper contrast
+
+3. **User Experience**
+   - Easy button access
+   - Clear visual feedback
+   - Consistent placement
+   - Intuitive layout
+
