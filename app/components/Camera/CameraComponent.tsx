@@ -9,17 +9,11 @@ interface CameraProps {
   fitToScreen?: boolean;
 }
 
-interface Dimensions {
-  width: number;
-  height: number;
-}
-
 export default function CameraComponent({ onCapture, onError, fitToScreen = true }: CameraProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
-  const [videoDimensions, setVideoDimensions] = useState<Dimensions>({ width: 0, height: 0 });
-  const [containerDimensions, setContainerDimensions] = useState<Dimensions>({ width: 0, height: 0 });
+  const [videoAspectRatio, setVideoAspectRatio] = useState(16/9); // Default aspect ratio
 
   // Initialize camera with optimal constraints
   useEffect(() => {
@@ -29,8 +23,7 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
           video: {
             facingMode: 'user',
             width: { ideal: 1920 }, // Prefer HD
-            height: { ideal: 1080 },
-            aspectRatio: { ideal: 16/9 }
+            height: { ideal: 1080 }
           }
         };
 
@@ -55,72 +48,53 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
     };
   }, [onError]);
 
-  // Handle video metadata loaded - get actual video dimensions
+  // Handle video metadata loaded
   const handleLoadedMetadata = useCallback(() => {
     if (videoRef.current) {
       const video = videoRef.current;
-      setVideoDimensions({
-        width: video.videoWidth,
-        height: video.videoHeight
-      });
+      setVideoAspectRatio(video.videoWidth / video.videoHeight);
       setIsReady(true);
+
+      // Force a resize to adjust video dimensions
+      window.dispatchEvent(new Event('resize'));
     }
   }, []);
 
-  // Update container dimensions and calculate video fitting
+  // Dynamic video sizing
   useEffect(() => {
-    function updateDimensions() {
-      if (!containerRef.current) return;
+    function updateVideoSize() {
+      if (!videoRef.current || !containerRef.current) return;
 
-      // Get available space (accounting for margins and UI elements)
-      const availableWidth = window.innerWidth - 32; // 16px margin each side
-      const availableHeight = window.innerHeight - 120; // Space for UI elements
+      const video = videoRef.current;
+      const container = containerRef.current;
 
-      // Set container dimensions
-      setContainerDimensions({
-        width: availableWidth,
-        height: availableHeight
-      });
-    }
+      // Get window dimensions minus margins
+      const windowWidth = window.innerWidth - 32; // 16px margin each side
+      const windowHeight = window.innerHeight - 120; // Space for UI elements
+      const windowAspectRatio = windowWidth / windowHeight;
 
-    // Initial update
-    updateDimensions();
-
-    // Update on resize
-    window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
-  }, []);
-
-  // Calculate video display dimensions to maintain aspect ratio
-  const videoStyle = useCallback(() => {
-    if (!videoDimensions.width || !videoDimensions.height) return {};
-
-    const videoAspectRatio = videoDimensions.width / videoDimensions.height;
-    const containerAspectRatio = containerDimensions.width / containerDimensions.height;
-
-    let width = '100%';
-    let height = '100%';
-    let objectFit: 'cover' | 'contain' = 'contain';
-
-    if (fitToScreen) {
-      // If video is wider than container (relative to their aspect ratios)
-      if (videoAspectRatio > containerAspectRatio) {
-        width = '100%';
-        height = `${(containerDimensions.width / videoAspectRatio)}px`;
-        objectFit = 'cover';
+      if (videoAspectRatio > windowAspectRatio) {
+        // Video is wider than window (relative to aspect ratios)
+        container.style.width = '100%';
+        container.style.height = `${100 / videoAspectRatio}vw`;
+        video.style.width = '100%';
+        video.style.height = '100%';
       } else {
-        height = '100%';
-        width = `${(containerDimensions.height * videoAspectRatio)}px`;
-        objectFit = 'cover';
+        // Video is taller than window (relative to aspect ratios)
+        container.style.width = `${videoAspectRatio * 100}vh`;
+        container.style.height = '100%';
+        video.style.width = '100%';
+        video.style.height = '100%';
       }
     }
 
-    return {
-      width,
-      height,
-      objectFit
-    };
-  }, [videoDimensions, containerDimensions, fitToScreen]);
+    // Initial update
+    updateVideoSize();
+
+    // Update on resize
+    window.addEventListener('resize', updateVideoSize);
+    return () => window.removeEventListener('resize', updateVideoSize);
+  }, [videoAspectRatio]);
 
   const handleCapture = useCallback(() => {
     if (!videoRef.current || !isReady) return;
@@ -153,36 +127,32 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
   }, [isReady, onCapture, fitToScreen]);
 
   return (
-    <div 
-      ref={containerRef}
-      className="relative bg-black rounded-lg overflow-hidden"
-      style={{
-        width: containerDimensions.width > 0 ? `${containerDimensions.width}px` : '100%',
-        height: containerDimensions.height > 0 ? `${containerDimensions.height}px` : '80vh',
-        maxWidth: '100vw',
-        maxHeight: '100vh',
-        margin: '0 auto'
-      }}
-    >
-      <div className="absolute inset-0 flex items-center justify-center">
+    <div className="fixed inset-0 flex items-center justify-center bg-black">
+      <div 
+        ref={containerRef}
+        className="relative overflow-hidden flex items-center justify-center"
+        style={{
+          maxWidth: '100vw',
+          maxHeight: 'calc(100vh - 120px)', // Account for UI elements
+        }}
+      >
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted
           onLoadedMetadata={handleLoadedMetadata}
-          style={videoStyle()}
-          className="bg-black"
+          className="bg-black object-cover"
         />
+        {isReady && (
+          <button
+            onClick={handleCapture}
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 bg-blue-500 text-white rounded-full text-lg shadow-lg hover:bg-blue-600 transition-colors z-10"
+          >
+            Take Photo
+          </button>
+        )}
       </div>
-      {isReady && (
-        <button
-          onClick={handleCapture}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 bg-blue-500 text-white rounded-full text-lg shadow-lg hover:bg-blue-600 transition-colors z-10"
-        >
-          Take Photo
-        </button>
-      )}
     </div>
   );
 }

@@ -21,20 +21,20 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-4xl mx-auto">
-        {!capturedImage ? (
-          <CameraComponent 
-            onCapture={handleCapture}
-            onError={handleError}
-            fitToScreen={true}
-          />
-        ) : (
-          <div className="relative bg-black rounded-lg overflow-hidden">
+    <main className="min-h-screen w-full bg-black">
+      {!capturedImage ? (
+        <CameraComponent 
+          onCapture={handleCapture}
+          onError={handleError}
+          fitToScreen={true}
+        />
+      ) : (
+        <div className="fixed inset-0 flex items-center justify-center bg-black">
+          <div className="relative w-full h-full flex items-center justify-center">
             <img 
               src={capturedImage} 
-              alt="Captured" 
-              className="w-full h-auto"
+              alt="Captured"
+              className="max-w-full max-h-full object-contain"
             />
             <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-4">
               <button
@@ -45,8 +45,8 @@ export default function Home() {
               </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </main>
   );
 }
