@@ -416,6 +416,16 @@ export async function getOptimalCameraStream(options: CameraInitOptions = {}): P
     throw new Error('Unable to access any camera. Please check permissions and try again.');
   }
 }
+/**
+ * Gets the current screen/viewport dimensions
+ */
+export function getScreenDimensions(): { width: number; height: number } {
+  // Get window dimensions
+  const width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+  const height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+  
+  return { width, height };
+}
 
 /**
  * Optimizes a canvas for high-quality image capture
@@ -427,13 +437,15 @@ export function optimizeCanvas(
     maxHeight?: number;
     quality?: number;
     format?: 'jpeg' | 'png';
+    fitToScreen?: boolean;
   } = {}
 ): { canvas: HTMLCanvasElement; width: number; height: number } {
   const {
     maxWidth = 4096,
     maxHeight = 4096,
     quality = 1.0,
-    format = 'jpeg'
+    format = 'jpeg',
+    fitToScreen = false
   } = options;
   
   // Get video dimensions
@@ -448,8 +460,41 @@ export function optimizeCanvas(
   let targetWidth = videoWidth;
   let targetHeight = videoHeight;
   
-  // Scale down if necessary to respect max dimensions
-  if (targetWidth > maxWidth || targetHeight > maxHeight) {
+  // If fitToScreen is true, consider screen dimensions
+  if (fitToScreen) {
+    const { width: screenWidth, height: screenHeight } = getScreenDimensions();
+    
+    // Use screen dimensions as constraints (with some margin for UI elements)
+    const availableWidth = Math.min(screenWidth - 32, maxWidth); // 16px margin on each side
+    const availableHeight = Math.min(screenHeight - 120, maxHeight); // Allow space for UI elements
+    
+    const aspectRatio = videoWidth / videoHeight;
+    
+    // Resize to fit screen while maintaining aspect ratio
+    if (aspectRatio > 1) {
+      // Landscape orientation - fit width first
+      targetWidth = Math.min(availableWidth, targetWidth);
+      targetHeight = Math.round(targetWidth / aspectRatio);
+      
+      // If height still doesn't fit, adjust both dimensions
+      if (targetHeight > availableHeight) {
+        targetHeight = availableHeight;
+        targetWidth = Math.round(targetHeight * aspectRatio);
+      }
+    } else {
+      // Portrait or square orientation - fit height first
+      targetHeight = Math.min(availableHeight, targetHeight);
+      targetWidth = Math.round(targetHeight * aspectRatio);
+      
+      // If width still doesn't fit, adjust both dimensions
+      if (targetWidth > availableWidth) {
+        targetWidth = availableWidth;
+        targetHeight = Math.round(targetWidth / aspectRatio);
+      }
+    }
+  } 
+  // If not fitting to screen, just respect max dimensions
+  else if (targetWidth > maxWidth || targetHeight > maxHeight) {
     const aspectRatio = videoWidth / videoHeight;
     
     if (aspectRatio > 1) {
@@ -473,6 +518,7 @@ export function optimizeCanvas(
         targetHeight = Math.round(targetWidth / aspectRatio);
       }
     }
+  }
   }
   
   // Create and configure canvas for optimal quality
@@ -528,13 +574,15 @@ export function captureHighQualityPhoto(
     quality?: number;
     maxWidth?: number;
     maxHeight?: number;
+    fitToScreen?: boolean;
   } = {}
 ): { dataUrl: string; width: number; height: number } {
   const {
     format = 'jpeg',
     quality = 0.95,
     maxWidth = 4096,
-    maxHeight = 4096
+    maxHeight = 4096,
+    fitToScreen = true // Default to true to fit the canvas to screen
   } = options;
   
   // Validate video element state
@@ -552,7 +600,8 @@ export function captureHighQualityPhoto(
       maxWidth,
       maxHeight,
       format,
-      quality
+      quality,
+      fitToScreen
     });
     
     // Convert to data URL with specified format and quality
