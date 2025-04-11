@@ -65,12 +65,6 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
     try {
       // Create a canvas to combine video frame and frame overlay
       const canvas = document.createElement('canvas');
-      const containerRect = containerRef.current?.getBoundingClientRect();
-      
-      if (!containerRect) {
-        throw new Error('Could not get container dimensions');
-      }
-
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
@@ -90,7 +84,7 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
         frameImage.src = 'https://i.ibb.co/mV2jdW46/SEYU-FRAME.png';
       });
 
-      // Calculate frame dimensions to match container while maintaining aspect ratio
+      // Calculate dimensions to maintain aspect ratio
       const frameAspectRatio = frameImage.width / frameImage.height;
       const canvasAspectRatio = canvas.width / canvas.height;
       
@@ -103,7 +97,7 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
         frameWidth = canvas.height * frameAspectRatio;
       }
 
-      // Calculate position to center the frame
+      // Center the frame
       const x = (canvas.width - frameWidth) / 2;
       const y = (canvas.height - frameHeight) / 2;
 
@@ -123,29 +117,23 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
     <div className="fixed inset-0 flex items-center justify-center bg-black">
       <div 
         ref={containerRef}
-        className="relative w-full h-full"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden'
-        }}
+        className="relative w-full h-full overflow-hidden"
       >
-        <div className="relative w-full h-full flex items-center justify-center">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            onLoadedMetadata={handleLoadedMetadata}
-            className="absolute inset-0 w-full h-full object-cover z-10"
-          />
-          <FrameOverlay />
-        </div>
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          onLoadedMetadata={handleLoadedMetadata}
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ zIndex: 1 }}
+        />
+        {/* Frame overlay is now explicitly placed above video */}
+        <FrameOverlay />
         {isReady && (
           <div 
-            className="fixed left-0 right-0 mx-auto flex justify-center gap-4 z-50"
-            style={{ bottom: '10vh' }} // 10% up from bottom
+            className="fixed left-0 right-0 mx-auto flex justify-center gap-4"
+            style={{ bottom: '10vh', zIndex: 2000 }}
           >
             <button
               onClick={handleCapture}
