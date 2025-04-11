@@ -872,3 +872,57 @@ v1.3.2
 - Add transition effects
 - Enhance interaction options
 
+
+## v2.3.11 - Frame Visibility and Layering Fix (2025-04-11)
+
+### Fixes
+- Ensured frame visibility with explicit styles
+- Implemented proper z-index hierarchy
+- Added frame load error handling
+- Enhanced debugging capabilities
+
+### Technical Improvements
+1. **Layer Management**
+   - Clear z-index hierarchy (frame: 1000, buttons: 2000)
+   - Explicit visibility properties
+   - Proper stacking context
+   - Error handling system
+
+2. **Visibility Control**
+   - Guaranteed frame visibility
+   - Explicit opacity settings
+   - Load state tracking
+   - Error monitoring
+
+3. **Error Handling**
+   - Frame load verification
+   - Error logging system
+   - Load success tracking
+   - Debug information
+
+### Implementation Details
+- Explicit visibility properties
+- Clear z-index hierarchy
+- Error handling system
+- Load verification
+
+### Browser Support
+- Full support in modern browsers
+- Consistent cross-browser display
+- Mobile-friendly implementation
+- Proper error handling
+
+### Deployment
+- Production URL: https://fanfie-6gkk0oghy-narimato.vercel.app
+- Release Date: 2025-04-11
+- Git Tag: v2.3.11
+
+### Known Limitations
+- None identified
+
+### Next Steps
+- Add loading indicators
+- Implement frame transitions
+- Enhance error recovery
+- Add performance monitoring
+

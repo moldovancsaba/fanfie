@@ -1731,3 +1731,82 @@ const loadImage = async (canvas: FabricCanvas, url: string): Promise<void> => {
    - Optimize repaints
    - Enhance performance
 
+
+## Frame Visibility and Layering Fix (2025-04-11)
+
+### Technical Solution
+1. **Proper Z-Index Hierarchy**
+   ```css
+   /* Clear z-index layering */
+   video { z-index: 1 }
+   .frame-overlay { z-index: 1000 }
+   .buttons { z-index: 2000 }
+   ```
+
+2. **Frame Visibility**
+   ```typescript
+   // Explicit visibility properties
+   style={{
+     opacity: 1,
+     visibility: 'visible',
+     pointerEvents: 'none'
+   }}
+   ```
+
+3. **Error Handling**
+   ```typescript
+   onError={(e) => console.error('Frame failed to load:', e)}
+   onLoad={() => console.log('Frame loaded successfully')}
+   ```
+
+### Implementation Insights
+1. **Layer Management**
+   - Clear z-index hierarchy
+   - Explicit visibility settings
+   - Proper stacking context
+   - Error handling for frame
+
+2. **Visibility Controls**
+   - Explicit opacity settings
+   - Guaranteed visibility
+   - Pointer events disabled
+   - Load state tracking
+
+3. **Error Handling**
+   - Frame load monitoring
+   - Error logging
+   - Load success tracking
+   - Debug information
+
+### Best Practices
+1. **Z-Index Management**
+   - Clear hierarchy definition
+   - Consistent numbering
+   - Proper documentation
+   - Avoid conflicts
+
+2. **Visibility Control**
+   - Explicit settings
+   - No assumptions
+   - Clear error states
+   - Load verification
+
+3. **Error Handling**
+   - Comprehensive logging
+   - User feedback
+   - Load verification
+   - Debug support
+
+### Future Considerations
+1. **Enhancement Ideas**
+   - Add loading indicators
+   - Implement fade effects
+   - Add error recovery
+   - Enhance debug tools
+
+2. **Performance**
+   - Optimize frame loading
+   - Cache frame resource
+   - Monitor load times
+   - Track errors
+
