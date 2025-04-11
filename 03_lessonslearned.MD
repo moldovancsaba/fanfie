@@ -1472,3 +1472,87 @@ const loadImage = async (canvas: FabricCanvas, url: string): Promise<void> => {
    - Consistent placement
    - Intuitive layout
 
+
+## Frame Overlay Implementation (2025-04-11)
+
+### Technical Solutions
+1. **Frame Integration**
+   ```typescript
+   // Frame overlay with aspect ratio preservation
+   const frameAspectRatio = frameImage.width / frameImage.height;
+   const canvasAspectRatio = canvas.width / canvas.height;
+   
+   let drawWidth = canvas.width;
+   let drawHeight = canvas.height;
+   
+   if (frameAspectRatio > canvasAspectRatio) {
+     drawHeight = canvas.width / frameAspectRatio;
+   } else {
+     drawWidth = canvas.height * frameAspectRatio;
+   }
+   ```
+
+2. **Canvas Composition**
+   ```typescript
+   // Combine video frame and overlay
+   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+   ctx.drawImage(frameImage, x, y, drawWidth, drawHeight);
+   ```
+
+### Implementation Insights
+1. **Frame Handling**
+   - Preload frame for instant display
+   - Calculate proper dimensions
+   - Maintain aspect ratios
+   - Handle loading errors
+
+2. **Performance Considerations**
+   - Image preloading improves UX
+   - Canvas operations are expensive
+   - Frame sizing affects performance
+   - Memory management important
+
+3. **Visual Quality**
+   - Proper positioning crucial
+   - Quality preservation needed
+   - Consistent display required
+   - Frame clarity important
+
+### Best Practices
+1. **Resource Management**
+   - Preload frame images
+   - Clean up canvas resources
+   - Handle memory properly
+   - Optimize frame sizes
+
+2. **Error Handling**
+   - Frame load failures
+   - Canvas context errors
+   - Dimension calculations
+   - Resource cleanup
+
+3. **User Experience**
+   - Smooth frame display
+   - Consistent positioning
+   - Quality preservation
+   - Performance optimization
+
+### Future Considerations
+1. **Enhancement Ideas**
+   - Multiple frame options
+   - Frame customization
+   - Position adjustments
+   - Quality settings
+
+2. **Performance Optimization**
+   - Frame caching
+   - Resource pooling
+   - Lazy loading options
+   - Memory management
+
+3. **Feature Extensions**
+   - Frame selection UI
+   - Custom frame upload
+   - Frame effects
+   - Animation options
+

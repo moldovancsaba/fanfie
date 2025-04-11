@@ -709,3 +709,58 @@ v1.3.2
 - Add transition effects
 - Enhance error feedback
 
+
+## v2.3.8 - Frame Overlay Implementation (2025-04-11)
+
+### Features
+- Added frame overlay to camera view
+- Implemented frame baking into captured photos
+- Maintained aspect ratio preservation
+- Enhanced visual presentation
+
+### Technical Improvements
+1. **Frame Implementation**
+   - Created reusable FrameOverlay component
+   - Added frame preloading for performance
+   - Implemented proper aspect ratio handling
+   - Enhanced canvas composition
+
+2. **Visual Integration**
+   - Proper frame positioning
+   - Consistent aspect ratio maintenance
+   - Seamless overlay integration
+   - Quality preservation in captured images
+
+3. **Performance**
+   - Image preloading
+   - Efficient canvas operations
+   - Optimized frame rendering
+   - Smooth capture process
+
+### Implementation Details
+- Frame URL: https://i.ibb.co/mV2jdW46/SEYU-FRAME.png
+- Canvas-based frame composition
+- Aspect ratio preservation logic
+- Error handling for frame loading
+
+### Browser Support
+- Full support in modern browsers
+- Mobile-responsive implementation
+- Consistent cross-device display
+- Frame quality preservation
+
+### Deployment
+- Production URL: https://fanfie-mhmlgqdzr-narimato.vercel.app
+- Release Date: 2025-04-11
+- Git Tag: v2.3.8
+
+### Known Limitations
+- Frame load time may affect initial display
+- High-resolution frames may impact performance
+
+### Next Steps
+- Add frame selection options
+- Implement frame caching
+- Add frame positioning controls
+- Enhance frame quality options
+
