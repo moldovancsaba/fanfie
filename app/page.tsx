@@ -2,13 +2,15 @@
 
 import { useState, useCallback } from 'react';
 import CameraComponent from './components/Camera/CameraComponent';
-import FrameOverlay from './components/Frame/FrameOverlay';
+import { Button, Stack, Dialog, DialogTitle, DialogContent, DialogActions, Typography } from '@mui/material';
+import { PhotoCamera, Replay, Upload, ArrowBack, Share, Error } from '@mui/icons-material';
 import toast from 'react-hot-toast';
 
 export default function Home() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+  const [error, setError] = useState<{ title: string; details: string } | null>(null);
 
   const handleCapture = useCallback((imageData: string) => {
     setCapturedImage(imageData);
@@ -22,6 +24,7 @@ export default function Home() {
   const handleRetake = useCallback(() => {
     setCapturedImage(null);
     setUploadedUrl(null);
+    setError(null);
   }, []);
 
   const handleUpload = useCallback(async () => {
@@ -29,6 +32,7 @@ export default function Home() {
 
     try {
       setIsUploading(true);
+      setError(null);
       toast.loading('Uploading image...');
 
       // Convert base64 to blob
@@ -45,11 +49,23 @@ export default function Home() {
         body: formData
       });
 
-      if (!uploadResponse.ok) {
-        throw new Error('Upload failed');
-      }
-
       const data = await uploadResponse.json();
+
+      if (!uploadResponse.ok) {
+        // Handle specific error cases
+        if (uploadResponse.status === 503) {
+          setError({
+            title: 'API Configuration Required',
+            details: data.details || 'ImgBB API key needs to be configured. Please contact the administrator.'
+          });
+        } else {
+          setError({
+            title: 'Upload Failed',
+            details: data.details || 'An error occurred while uploading the image.'
+          });
+        }
+        throw new Error(data.error);
+      }
       
       if (data.data?.url) {
         setUploadedUrl(data.data.url);
@@ -89,8 +105,12 @@ export default function Home() {
   }, [uploadedUrl]);
 
   // Common button styles
-  const buttonContainerStyle = "fixed left-0 right-0 mx-auto flex justify-center gap-4 z-50";
-  const buttonStyle = "px-6 py-3 rounded-full text-lg shadow-lg transition-colors";
+  const buttonStyle = {
+    borderRadius: '28px',
+    padding: '12px 24px',
+    textTransform: 'none',
+    fontSize: '1rem',
+  };
 
   return (
     <main className="min-h-screen w-full bg-black">
@@ -98,7 +118,6 @@ export default function Home() {
         <CameraComponent 
           onCapture={handleCapture}
           onError={handleError}
-          fitToScreen={true}
         />
       ) : (
         <div className="fixed inset-0 flex items-center justify-center bg-black">
@@ -108,37 +127,88 @@ export default function Home() {
               alt="Captured"
               className="absolute inset-0 w-full h-full object-cover"
             />
-            <div 
-              className={buttonContainerStyle}
-              style={{ bottom: '10vh' }} // 10% up from bottom
+            <Stack
+              direction="row"
+              spacing={2}
+              sx={{
+                position: 'absolute',
+                bottom: '2rem',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 2000
+              }}
             >
-              <button
-                onClick={handleRetake}
-                className={`${buttonStyle} bg-blue-500 hover:bg-blue-600 text-white`}
-                disabled={isUploading}
-              >
-                Retake Photo
-              </button>
               {!uploadedUrl ? (
-                <button
-                  onClick={handleUpload}
-                  className={`${buttonStyle} bg-green-500 hover:bg-green-600 text-white disabled:opacity-50 disabled:cursor-not-allowed`}
-                  disabled={isUploading}
-                >
-                  {isUploading ? 'Uploading...' : 'Upload Photo'}
-                </button>
+                <>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<Replay />}
+                    onClick={handleRetake}
+                    disabled={isUploading}
+                    sx={buttonStyle}
+                  >
+                    Retake
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    startIcon={<Upload />}
+                    onClick={handleUpload}
+                    disabled={isUploading}
+                    sx={buttonStyle}
+                  >
+                    {isUploading ? 'Uploading...' : 'Upload'}
+                  </Button>
+                </>
               ) : (
-                <button
-                  onClick={handleShare}
-                  className={`${buttonStyle} bg-purple-500 hover:bg-purple-600 text-white`}
-                >
-                  Share Photo
-                </button>
+                <>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<ArrowBack />}
+                    onClick={handleRetake}
+                    sx={buttonStyle}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    startIcon={<Share />}
+                    onClick={handleShare}
+                    sx={buttonStyle}
+                  >
+                    Share
+                  </Button>
+                </>
               )}
-            </div>
+            </Stack>
           </div>
         </div>
       )}
+
+      {/* Error Dialog */}
+      <Dialog
+        open={!!error}
+        onClose={() => setError(null)}
+        aria-labelledby="error-dialog-title"
+      >
+        <DialogTitle id="error-dialog-title" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Error color="error" />
+          {error?.title}
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            {error?.details}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setError(null)} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </main>
   );
 }
