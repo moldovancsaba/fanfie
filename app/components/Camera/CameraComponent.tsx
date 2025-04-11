@@ -13,21 +13,18 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
-  const [videoAspectRatio, setVideoAspectRatio] = useState(16/9); // Default aspect ratio
+  const [videoDimensions, setVideoDimensions] = useState<{ width: number; height: number } | null>(null);
 
-  // Initialize camera with optimal constraints
   useEffect(() => {
     async function startCamera() {
       try {
-        const constraints = {
+        const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: 'user',
-            width: { ideal: 1920 }, // Prefer HD
+            width: { ideal: 1920 },
             height: { ideal: 1080 }
           }
-        };
-
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        });
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -48,53 +45,16 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
     };
   }, [onError]);
 
-  // Handle video metadata loaded
   const handleLoadedMetadata = useCallback(() => {
     if (videoRef.current) {
       const video = videoRef.current;
-      setVideoAspectRatio(video.videoWidth / video.videoHeight);
+      setVideoDimensions({
+        width: video.videoWidth,
+        height: video.videoHeight
+      });
       setIsReady(true);
-
-      // Force a resize to adjust video dimensions
-      window.dispatchEvent(new Event('resize'));
     }
   }, []);
-
-  // Dynamic video sizing
-  useEffect(() => {
-    function updateVideoSize() {
-      if (!videoRef.current || !containerRef.current) return;
-
-      const video = videoRef.current;
-      const container = containerRef.current;
-
-      // Get window dimensions minus margins
-      const windowWidth = window.innerWidth;
-      const windowHeight = window.innerHeight;
-      const windowAspectRatio = windowWidth / windowHeight;
-
-      if (videoAspectRatio > windowAspectRatio) {
-        // Video is wider than window (relative to aspect ratios)
-        container.style.width = '100%';
-        container.style.height = `${100 / videoAspectRatio}vw`;
-        video.style.width = '100%';
-        video.style.height = '100%';
-      } else {
-        // Video is taller than window (relative to aspect ratios)
-        container.style.width = `${videoAspectRatio * 100}vh`;
-        container.style.height = '100%';
-        video.style.width = '100%';
-        video.style.height = '100%';
-      }
-    }
-
-    // Initial update
-    updateVideoSize();
-
-    // Update on resize
-    window.addEventListener('resize', updateVideoSize);
-    return () => window.removeEventListener('resize', updateVideoSize);
-  }, [videoAspectRatio]);
 
   const handleCapture = useCallback(() => {
     if (!videoRef.current || !isReady) return;
@@ -127,10 +87,10 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
   }, [isReady, onCapture, fitToScreen]);
 
   return (
-    <div className="fixed inset-0 bg-black">
+    <div className="fixed inset-0 flex items-center justify-center bg-black">
       <div 
         ref={containerRef}
-        className="relative overflow-hidden flex items-center justify-center h-full"
+        className="relative w-full h-full overflow-hidden"
       >
         <video
           ref={videoRef}
@@ -138,7 +98,7 @@ export default function CameraComponent({ onCapture, onError, fitToScreen = true
           playsInline
           muted
           onLoadedMetadata={handleLoadedMetadata}
-          className="bg-black object-cover"
+          className="absolute inset-0 w-full h-full object-cover"
         />
         {isReady && (
           <div 
