@@ -268,7 +268,7 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
       ctx.imageSmoothingQuality = 'high';
 
       // Get container and video dimensions
-      const containerRect = container.getBoundingClientRect();
+      const containerRect = videoContainerRef.current.getBoundingClientRect();
       const videoRect = video.getBoundingClientRect();
 
       // Calculate aspect ratios
