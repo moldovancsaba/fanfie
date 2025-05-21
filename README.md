@@ -3,7 +3,7 @@
 Production-grade selfie application with advanced camera controls and sharing capabilities.
 
 **Status**: 🟢 Foundation Complete  
-**Version**: v0.1.1  
+**Version**: v2.3.16  
 **Live**: [fanfie-2ho8nmoad-narimato.vercel.app](https://fanfie-2ho8nmoad-narimato.vercel.app)
 
 ## Quick Start

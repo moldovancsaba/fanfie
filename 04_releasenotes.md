@@ -1,3 +1,51 @@
+# v2.3.16 - Photo Capture Scaling Fix (2025-05-21)
+
+### Fixes
+- Fixed photo capture scaling issue where photos weren't filling the frame completely
+- Improved dimension calculations for better preview-to-capture matching
+- Enhanced aspect ratio preservation during capture
+- Optimized frame filling calculations
+
+### Technical Improvements
+1. **Capture Logic**
+   - Updated source dimension calculations
+   - Improved container aspect ratio handling
+   - Enhanced centering logic
+   - Fixed scaling calculations
+
+2. **Quality Enhancements**
+   - Maintained high-quality image settings
+   - Improved smoothing configuration
+   - Better transform handling
+   - Enhanced memory management
+
+### Implementation Details
+- Used container aspect ratio for dimension calculations
+- Implemented proper source area calculations
+- Added boundary checks for dimensions
+- Enhanced transform management
+
+### Browser Support
+- Tested across modern browsers
+- Mobile-friendly implementation
+- Consistent cross-device display
+- Proper viewport handling
+
+### Deployment
+- Production URL: [URL to be added after deployment]
+- Release Date: 2025-05-21
+- Git Tag: v2.3.16
+
+### Known Limitations
+- None identified
+
+### Next Steps
+- Monitor capture performance
+- Gather user feedback
+- Consider adding capture area adjustment
+- Add capture quality options
+
+
 # v2.3.0 - Screen-Sized Canvas Implementation (2025-04-11)
 
 ## Features

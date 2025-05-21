@@ -227,7 +227,8 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
           video: {
             facingMode: 'user',
             width: { ideal: 1920 },
-            height: { ideal: 1080 }
+            height: { ideal: 1920 }, // Changed to support square frames better
+            aspectRatio: { ideal: 1 } // Added to maintain aspect ratio
           }
         });
 
@@ -257,50 +258,66 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
     const canvas = canvasRef.current;
     
     try {
-      // Set canvas dimensions to match frame dimensions exactly
       canvas.width = currentFrame.width;
       canvas.height = currentFrame.height;
       
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Configure for high quality rendering
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
 
-      // Calculate dimensions to match video's object-fit: cover behavior exactly
-      const videoAspect = video.videoWidth / video.videoHeight;
-      const frameAspect = currentFrame.width / currentFrame.height;
+      // Get container and video dimensions
+      const containerRect = container.getBoundingClientRect();
+      const videoRect = video.getBoundingClientRect();
 
+      // Calculate aspect ratios
+      const containerAspect = containerRect.width / containerRect.height;
+      const videoAspect = video.videoWidth / video.videoHeight;
+
+      // Calculate the source dimensions
       let sourceWidth: number;
       let sourceHeight: number;
       let sourceX: number;
       let sourceY: number;
 
-      if (videoAspect > frameAspect) {
-        // Video is wider than frame - use full height and crop width
-        sourceHeight = video.videoHeight;
-        sourceWidth = video.videoHeight * frameAspect;
-        sourceY = 0;
-        sourceX = (video.videoWidth - sourceWidth) / 2;
-      } else {
-        // Video is taller than frame - use full width and crop height
+      if (containerAspect > videoAspect) {
+        // Container is wider than video - use full video width and calculate height
         sourceWidth = video.videoWidth;
-        sourceHeight = video.videoWidth / frameAspect;
+        sourceHeight = video.videoWidth / containerAspect;
         sourceX = 0;
         sourceY = (video.videoHeight - sourceHeight) / 2;
+      } else {
+        // Container is taller than video - use full video height and calculate width
+        sourceHeight = video.videoHeight;
+        sourceWidth = video.videoHeight * containerAspect;
+        sourceX = (video.videoWidth - sourceWidth) / 2;
+        sourceY = 0;
       }
 
-      // Clear the canvas
+      // Ensure dimensions are valid
+      sourceWidth = Math.min(sourceWidth, video.videoWidth);
+      sourceHeight = Math.min(sourceHeight, video.videoHeight);
+      sourceX = Math.max(0, sourceX);
+      sourceY = Math.max(0, sourceY);
+
+      // Clear canvas and apply mirroring
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Draw video to fill frame with exact object-fit: cover behavior
+      ctx.save();
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+
+      // Draw the video frame
       ctx.drawImage(
         video,
-        Math.round(sourceX), Math.round(sourceY),               // Precise cropping position
-        Math.round(sourceWidth), Math.round(sourceHeight),      // Exact source dimensions
-        0, 0, canvas.width, canvas.height                       // Fill entire frame
+        sourceX, sourceY,
+        sourceWidth, sourceHeight,
+        0, 0,
+        canvas.width, canvas.height
       );
+
+      // Reset transformation
+      ctx.restore();
 
       // Load and draw frame overlay
       const frameImage = new Image();
@@ -315,6 +332,10 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
           console.error('Canvas capture error:', error);
           onError(new Error('Failed to capture photo'));
         }
+      };
+      frameImage.onerror = () => {
+        console.error('Frame loading failed');
+        onError(new Error('Failed to load frame overlay'));
       };
       frameImage.src = currentFrame.url;
     } catch (error) {
@@ -366,8 +387,9 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            transform: 'translateZ(0)', // Enable hardware acceleration
-            willChange: 'transform'     // Optimize for animations
+            transform: 'scaleX(-1) translateZ(0)', // Mirror effect for selfie camera + hardware acceleration
+            willChange: 'transform',               // Optimize for animations
+            backgroundColor: '#000'
           }}
         />
 
