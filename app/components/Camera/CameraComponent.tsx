@@ -41,9 +41,9 @@ const calculateContainerDimensions = (
   viewportWidth: number,
   viewportHeight: number
 ): { width: number; height: number; scale: number } => {
-  // Account for potential UI elements by reducing viewport
-  const safeViewportHeight = viewportHeight * 0.9; // 90% of viewport height
-  const safeViewportWidth = viewportWidth * 0.95; // 95% of viewport width
+  // Use 98% of viewport dimensions for maximum screen usage
+  const safeViewportHeight = viewportHeight * 0.98;
+  const safeViewportWidth = viewportWidth * 0.98;
 
   const frameRatio = frameWidth / frameHeight;
   const viewportRatio = safeViewportWidth / safeViewportHeight;
@@ -72,7 +72,7 @@ const calculateContainerDimensions = (
 };
 
 interface CameraProps {
-  onCapture: (imageData: string) => void;
+  onCapture: (imageData: string, frameInfo: { width: number; height: number }) => void;
   onError: (error: Error) => void;
 }
 
@@ -282,17 +282,17 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
       let sourceY: number;
 
       if (containerAspect > videoAspect) {
-        // Container is wider than video - use full video width and calculate height
-        sourceWidth = video.videoWidth;
-        sourceHeight = video.videoWidth / containerAspect;
-        sourceX = 0;
-        sourceY = (video.videoHeight - sourceHeight) / 2;
-      } else {
-        // Container is taller than video - use full video height and calculate width
+        // Container is wider than video - video fills container height
         sourceHeight = video.videoHeight;
         sourceWidth = video.videoHeight * containerAspect;
         sourceX = (video.videoWidth - sourceWidth) / 2;
         sourceY = 0;
+      } else {
+        // Container is taller than video - video fills container width
+        sourceWidth = video.videoWidth;
+        sourceHeight = video.videoWidth / containerAspect;
+        sourceX = 0;
+        sourceY = (video.videoHeight - sourceHeight) / 2;
       }
 
       // Ensure dimensions are valid
@@ -301,13 +301,10 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
       sourceX = Math.max(0, sourceX);
       sourceY = Math.max(0, sourceY);
 
-      // Clear canvas and apply mirroring
+      // Clear canvas before drawing
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.save();
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
 
-      // Draw the video frame
+      // Draw the video frame without mirroring
       ctx.drawImage(
         video,
         sourceX, sourceY,
@@ -315,9 +312,6 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
         0, 0,
         canvas.width, canvas.height
       );
-
-      // Reset transformation
-      ctx.restore();
 
       // Load and draw frame overlay
       const frameImage = new Image();
@@ -327,7 +321,10 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
         
         try {
           const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-          onCapture(dataUrl);
+          onCapture(dataUrl, {
+            width: currentFrame.width,
+            height: currentFrame.height
+          });
         } catch (error) {
           console.error('Canvas capture error:', error);
           onError(new Error('Failed to capture photo'));
@@ -368,7 +365,7 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
     height: `${containerDimensions.height}px`,
     position: 'relative',
     overflow: 'hidden',
-    margin: 'auto',
+    margin: '0', // Remove margin for edge-to-edge design
     backgroundColor: '#000',
     transition: 'width 0.3s ease-out, height 0.3s ease-out'
   };
@@ -419,14 +416,21 @@ export default function CameraComponent({ onCapture, onError }: CameraProps) {
             direction="row"
             spacing={2}
             sx={{
-              position: 'absolute',
-              bottom: '1rem',
+              position: 'fixed',
+              bottom: 'calc(2vh + env(safe-area-inset-bottom))',
               left: '50%',
               transform: 'translateX(-50%)',
               zIndex: 2000,
-              padding: '0 1rem',
               width: '100%',
-              maxWidth: '500px'
+              maxWidth: '500px',
+              padding: '0.75rem 1rem',
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '1rem',
+              backdropFilter: 'blur(10px)',
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              borderRadius: '16px',
+              margin: '0 auto'
             }}
           >
             <Button

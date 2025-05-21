@@ -27,9 +27,9 @@ const calculateContainerDimensions = (
   frameWidth: number = 1080,  // Default frame width
   frameHeight: number = 1920  // Default frame height
 ): { width: number; height: number } => {
-  // Use 90% of viewport height and 95% of width for safe margins
-  const safeHeight = viewportHeight * 0.9;
-  const safeWidth = viewportWidth * 0.95;
+  // Use 98% of viewport dimensions
+  const safeHeight = viewportHeight * 0.98;
+  const safeWidth = viewportWidth * 0.98;
   
   // Use actual frame aspect ratio
   const frameAspect = frameWidth / frameHeight;
@@ -254,14 +254,14 @@ export default function Home() {
           onError={handleError}
         />
       ) : (
-        <div className="fixed inset-0 flex items-center justify-center bg-black">
+        <div className="fixed inset-0 flex items-center justify-center bg-black m-0 p-0 overflow-hidden">
           <div 
             className="relative"
             style={{
               position: 'relative',
               width: `${previewDimensions.width}px`,
               height: `${previewDimensions.height}px`,
-              margin: 'auto',
+              margin: '0',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -293,7 +293,6 @@ export default function Home() {
                   height: '100%',
                   objectFit: 'cover',
                   objectPosition: 'center',
-                  transform: 'scaleX(-1)',
                   willChange: 'transform',
                   backgroundColor: '#000'
                 }}
@@ -306,14 +305,20 @@ export default function Home() {
             spacing={2}
             sx={{
               position: 'fixed',
-              bottom: '2rem',
+              bottom: 'calc(2vh + env(safe-area-inset-bottom))',
               left: '50%',
               transform: 'translateX(-50%)',
               zIndex: 2000,
-              padding: '0 1rem',
               width: '100%',
               maxWidth: '500px',
-              justifyContent: 'center'
+              padding: '0.75rem 1rem',
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '1rem',
+              backdropFilter: 'blur(10px)',
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              borderRadius: '16px',
+              margin: '0 auto'
             }}
           >
             {!uploadedUrl ? (
