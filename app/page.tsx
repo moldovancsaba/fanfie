@@ -1,10 +1,57 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import CameraComponent from './components/Camera/CameraComponent';
 import { Button, Stack, Dialog, DialogTitle, DialogContent, DialogActions, Typography } from '@mui/material';
 import { PhotoCamera, Replay, Upload, ArrowBack, Share, Error as ErrorIcon } from '@mui/icons-material';
 import toast from 'react-hot-toast';
+
+// Utility functions for viewport-aware sizing
+const getViewportDimensions = () => {
+  if (typeof window === 'undefined') {
+    // Return default dimensions during server-side rendering
+    return {
+      width: 1080,
+      height: 1920
+    };
+  }
+  return {
+    width: Math.min(window.innerWidth, document.documentElement.clientWidth),
+    height: Math.min(window.innerHeight, document.documentElement.clientHeight)
+  };
+};
+
+const calculateContainerDimensions = (
+  viewportWidth: number,
+  viewportHeight: number,
+  frameWidth: number = 1080,  // Default frame width
+  frameHeight: number = 1920  // Default frame height
+): { width: number; height: number } => {
+  // Use 90% of viewport height and 95% of width for safe margins
+  const safeHeight = viewportHeight * 0.9;
+  const safeWidth = viewportWidth * 0.95;
+  
+  // Use actual frame aspect ratio
+  const frameAspect = frameWidth / frameHeight;
+  
+  if (safeWidth / safeHeight > frameAspect) {
+    // Width is the constraint
+    const height = safeHeight;
+    const width = height * frameAspect;
+    return { 
+      width: Math.round(width), 
+      height: Math.round(height) 
+    };
+  } else {
+    // Height is the constraint
+    const width = safeWidth;
+    const height = width / frameAspect;
+    return { 
+      width: Math.round(width), 
+      height: Math.round(height) 
+    };
+  }
+};
 
 interface ImgBBResponse {
   data?: {
@@ -34,9 +81,38 @@ export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [error, setError] = useState<ErrorState | null>(null);
+  const [currentFrame, setCurrentFrame] = useState({ width: 1080, height: 1920 });
+  const [previewDimensions, setPreviewDimensions] = useState(() => {
+    // Only calculate dimensions on client-side
+    if (typeof window === 'undefined') {
+      return {
+        width: 1080,
+        height: 1920
+      };
+    }
+    const viewport = getViewportDimensions();
+    return calculateContainerDimensions(
+      viewport.width,
+      viewport.height,
+      currentFrame.width,
+      currentFrame.height
+    );
+  });
 
-  const handleCapture = useCallback((imageData: string) => {
+  const handleCapture = useCallback((imageData: string, frameInfo: { width: number; height: number }) => {
     setCapturedImage(imageData);
+    setCurrentFrame({
+      width: frameInfo.width,
+      height: frameInfo.height
+    });
+    // Recalculate preview dimensions with new frame size
+    const viewport = getViewportDimensions();
+    setPreviewDimensions(calculateContainerDimensions(
+      viewport.width,
+      viewport.height,
+      frameInfo.width,
+      frameInfo.height
+    ));
     toast.success('Photo captured successfully!');
   }, []);
 
@@ -133,6 +209,34 @@ export default function Home() {
     }
   }, [uploadedUrl]);
 
+  // Handle window resize for preview dimensions
+  useEffect(() => {
+    // Skip effect during SSR
+    if (typeof window === 'undefined') return;
+    
+    const handleResize = () => {
+      const viewport = getViewportDimensions();
+      const dimensions = calculateContainerDimensions(
+        viewport.width, 
+        viewport.height,
+        currentFrame.width,
+        currentFrame.height
+      );
+      setPreviewDimensions(dimensions);
+    };
+
+    // Initial calculation
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
+  }, [currentFrame]);
+
   // Common button styles
   const buttonStyle = {
     borderRadius: '28px',
@@ -142,7 +246,8 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen w-full bg-black">
+  <>
+    <div className="min-h-screen w-full bg-black">
       {!capturedImage ? (
         <CameraComponent 
           onCapture={handleCapture}
@@ -150,94 +255,137 @@ export default function Home() {
         />
       ) : (
         <div className="fixed inset-0 flex items-center justify-center bg-black">
-          <div className="relative w-full h-full">
-            <img 
-              src={capturedImage} 
-              alt="Captured"
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            <Stack
-              direction="row"
-              spacing={2}
-              sx={{
-                position: 'absolute',
-                bottom: '2rem',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                zIndex: 2000
+          <div 
+            className="relative"
+            style={{
+              position: 'relative',
+              width: `${previewDimensions.width}px`,
+              height: `${previewDimensions.height}px`,
+              margin: 'auto',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              backgroundColor: '#000',
+              transition: 'width 0.3s ease-out, height 0.3s ease-out'
+            }}
+          >
+            <div 
+              style={{
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#000',
+                overflow: 'hidden'
               }}
             >
-              {!uploadedUrl ? (
-                <>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<Replay />}
-                    onClick={handleRetake}
-                    disabled={isUploading}
-                    sx={buttonStyle}
-                  >
-                    Retake
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    startIcon={<Upload />}
-                    onClick={handleUpload}
-                    disabled={isUploading}
-                    sx={buttonStyle}
-                  >
-                    {isUploading ? 'Uploading...' : 'Upload'}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<ArrowBack />}
-                    onClick={handleRetake}
-                    sx={buttonStyle}
-                  >
-                    Back
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    startIcon={<Share />}
-                    onClick={handleShare}
-                    sx={buttonStyle}
-                  >
-                    Share
-                  </Button>
-                </>
-              )}
-            </Stack>
+              <img 
+                src={capturedImage} 
+                alt="Captured"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: 'center',
+                  transform: 'scaleX(-1)',
+                  willChange: 'transform',
+                  backgroundColor: '#000'
+                }}
+              />
+            </div>
           </div>
+          
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{
+              position: 'fixed',
+              bottom: '2rem',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 2000,
+              padding: '0 1rem',
+              width: '100%',
+              maxWidth: '500px',
+              justifyContent: 'center'
+            }}
+          >
+            {!uploadedUrl ? (
+              <>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<Replay />}
+                  onClick={handleRetake}
+                  disabled={isUploading}
+                  sx={buttonStyle}
+                >
+                  Retake
+                </Button>
+                <Button
+                  variant="contained"
+                  color="success"
+                  startIcon={<Upload />}
+                  onClick={handleUpload}
+                  disabled={isUploading}
+                  sx={buttonStyle}
+                >
+                  {isUploading ? 'Uploading...' : 'Upload'}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<ArrowBack />}
+                  onClick={handleRetake}
+                  sx={buttonStyle}
+                >
+                  Back
+                </Button>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  startIcon={<Share />}
+                  onClick={handleShare}
+                  sx={buttonStyle}
+                >
+                  Share
+                </Button>
+              </>
+            )}
+          </Stack>
         </div>
       )}
+    </div>
 
-      {/* Error Dialog */}
-      <Dialog
-        open={!!error}
-        onClose={() => setError(null)}
-        aria-labelledby="error-dialog-title"
-      >
-        <DialogTitle id="error-dialog-title" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <ErrorIcon color="error" />
-          {error?.title}
-        </DialogTitle>
-        <DialogContent>
-          <Typography>
-            {error?.details}
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setError(null)} color="primary">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </main>
-  );
+    <Dialog
+      open={!!error}
+      onClose={() => setError(null)}
+      aria-labelledby="error-dialog-title"
+    >
+      <DialogTitle id="error-dialog-title" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <ErrorIcon color="error" />
+        {error?.title}
+      </DialogTitle>
+      <DialogContent>
+        <Typography>
+          {error?.details}
+        </Typography>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setError(null)} color="primary">
+          Close
+        </Button>
+      </DialogActions>
+    </Dialog>
+  </>
+);
 }
