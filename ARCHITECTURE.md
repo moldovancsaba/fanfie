@@ -24,7 +24,7 @@ graph TD
 ## Technical Stack
 
 ### Frontend
-- Next.js (App Router)
+- Next.js 13.5.11 (App Router)
 - React
 - TypeScript
 

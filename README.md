@@ -1,5 +1,7 @@
 ![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)
 
+_Last updated: 2024-01-17T10:30:00.000Z_
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

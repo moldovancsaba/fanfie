@@ -1,5 +1,16 @@
 # Release Notes
 
+## [v1.3.0] - 2024-01-17T10:30:00.000Z
+
+### Security
+- Fixed multiple security vulnerabilities in dependencies
+- Updated package dependencies to latest secure versions
+- Enhanced input validation and sanitization
+
+### Technical Details
+- Comprehensive security audit and fixes
+- Dependency version updates
+- Improved security measures implementation
 ## [v1.2.0] - 2025-06-30T16:39:25Z
 
 ### Changed
