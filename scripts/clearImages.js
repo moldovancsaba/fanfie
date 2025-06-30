@@ -4,7 +4,12 @@ import * as dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
-const uri = "mongodb+srv://moldovancsaba:gbR86EK0bxumEpxq@mosaic-cluster.nm3s5dj.mongodb.net/?retryWrites=true&w=majority&appName=mosaic-cluster";
+if (!process.env.MONGODB_URI) {
+  console.error('Please provide MONGODB_URI environment variable');
+  process.exit(1);
+}
+
+const uri = process.env.MONGODB_URI;
 if (!uri) {
     console.error('Please provide MONGODB_URI environment variable');
     process.exit(1);
