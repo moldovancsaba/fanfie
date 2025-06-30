@@ -4,11 +4,8 @@ if (!process.env.MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable inside .env');
 }
 
-if (!process.env.MONGODB_DB) {
-  throw new Error('Please define the MONGODB_DB environment variable inside .env');
-}
-
 const uri = process.env.MONGODB_URI;
+const dbName = new URL(uri).pathname.substr(1) || 'mosaic-cluster';
 
 // Types for the cached connection
 interface MongoConnection {
@@ -42,7 +39,7 @@ export async function connectToDatabase(): Promise<MongoConnection> {
         console.log(`MongoDB connected successfully in ${process.env.NODE_ENV} mode`);
         return {
           client,
-          db: client.db(process.env.MONGODB_DB),
+          db: client.db(dbName),
         };
       })
       .catch((error) => {

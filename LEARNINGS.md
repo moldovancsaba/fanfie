@@ -24,3 +24,12 @@
 ## Process
 - Documentation-first approach ensures better project maintainability
 - Version control strategy aligned with semantic versioning
+
+## Deployment
+- 2024-01-17T12:45:00.000Z: Production deployment requires proper authentication setup for API endpoints
+- Vercel deployment process requires environment variable configuration
+- 2025-06-30T17:35:00.000Z: MongoDB connection optimization in production:
+  - Simplified configuration by using only MONGODB_URI
+  - Database name extracted directly from connection string
+  - Successful data persistence and retrieval confirmed
+  - Connection stability achieved in production environment

@@ -33,6 +33,18 @@ graph TD
 - npm
 - Git
 
+### Deployment Infrastructure
+- **Platform**: Vercel
+- **Environment**: Production
+- **Authentication**: Required for API endpoints
+- **Configuration**:
+  - MongoDB connection via connection string (includes database name)
+  - API authentication for endpoint protection
+- **Database**: MongoDB Atlas
+  - Connection managed through connection string
+  - Database name extracted from URI
+  - Verified data persistence and retrieval
+
 ## Component Architecture
 
 The application follows Next.js 13+ conventions with the App Router architecture:

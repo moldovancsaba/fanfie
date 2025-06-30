@@ -1,5 +1,53 @@
 # Release Notes
 
+## [v2.0.0] - 2025-06-30T17:36:42.000Z
+
+### Major Changes
+- Complete database integration with production environment
+- Unified MongoDB configuration across environments
+- Enhanced logging and error tracking
+- Streamlined deployment process
+
+### System Updates
+- Removed dependency on MONGODB_DB environment variable
+- Automated database name extraction from connection string
+- Production environment fully validated
+- Data persistence verified across environments
+
+### Technical Details
+- MongoDB Atlas integration complete
+- Connection string based configuration
+- Shared database between development and production
+- Comprehensive error logging implementation
+
+## [v1.4.1] - 2025-06-30T17:35:00.000Z
+
+### Fixed
+- MongoDB connection in production environment
+- Database configuration using connection string only
+- Production deployment and environment setup
+
+### Technical Details
+- Simplified MongoDB configuration by extracting database name from connection URI
+- Removed redundant MONGODB_DB environment variable
+- Verified data persistence and retrieval in production
+
+## [v1.4.0] - 2024-01-17T12:45:00.000Z
+
+### Added
+- Production deployment configuration
+- API authentication implementation
+- Environment variable setup for MongoDB and authentication
+
+### Changed
+- Updated deployment documentation
+- Enhanced security with protected API endpoints
+
+### Technical Details
+- Vercel production deployment setup
+- API endpoint authentication configuration
+- MongoDB connection string environment variable
+
 ## [v1.3.0] - 2024-01-17T10:30:00.000Z
 
 ### Security

@@ -34,6 +34,7 @@ export default function AdminPage() {
     e.preventDefault();
     setError('');
     setIsLoading(true);
+    console.log('Starting image upload...');
 
     const validUrls = validateUrls(urls);
     if (validUrls.length === 0) {
@@ -49,15 +50,20 @@ export default function AdminPage() {
         },
         body: JSON.stringify({ urls: validUrls }),
       });
-
-      if (!response.ok) throw new Error('Failed to add images');
-
-      // Clear textarea and refresh page
+      
+      const data = await response.json();
+      console.log('API Response:', data);
+      
+      if (!response.ok) {
+        throw new Error(`API Error: ${data.error || response.statusText}`);
+      }
+      
       setUrls('');
       router.refresh();
-    } catch (error) {
-      setError('Failed to add images');
-      console.error(error);
+    } catch (error: unknown) {
+      console.error('Upload Error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setError(`Failed to add images: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
