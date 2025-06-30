@@ -1,0 +1,59 @@
+import { NextResponse } from 'next/server';
+import clientPromise from '../../../../lib/mongodb';
+import { ObjectId } from 'mongodb';
+
+/**
+ * DELETE /api/images/[id]
+ * Deletes a single image by its ID
+ * Returns success status
+ */
+export async function DELETE(request, { params }) {
+    try {
+        const id = params.id;
+        
+        if (!id) {
+            return NextResponse.json({
+                success: false,
+                error: 'Image ID is required',
+                timestamp: new Date().toISOString()
+            }, { status: 400 });
+        }
+
+        const client = await clientPromise;
+        const db = client.db(process.env.MONGODB_DB);
+        
+        // Verify valid ObjectId format
+        if (!ObjectId.isValid(id)) {
+            return NextResponse.json({
+                success: false,
+                error: 'Invalid image ID format',
+                timestamp: new Date().toISOString()
+            }, { status: 400 });
+        }
+
+        const result = await db.collection('images').deleteOne({
+            _id: new ObjectId(id)
+        });
+
+        if (result.deletedCount === 0) {
+            return NextResponse.json({
+                success: false,
+                error: 'Image not found',
+                timestamp: new Date().toISOString()
+            }, { status: 404 });
+        }
+
+        return NextResponse.json({
+            success: true,
+            data: { message: 'Image successfully deleted' },
+            timestamp: new Date().toISOString()
+        }, { status: 200 });
+    } catch (error) {
+        console.error('Error deleting image:', error);
+        return NextResponse.json({
+            success: false,
+            error: 'Failed to delete image',
+            timestamp: new Date().toISOString()
+        }, { status: 500 });
+    }
+}
